@@ -9,7 +9,7 @@ import xlwt
 import ctypes
 
 APP_NAME = "Cutting Generator"
-APP_VERSION = "v1.2"
+APP_VERSION = "v1.2.0"
 AUTHOR = "Lian Jordaan"
 
 valid_bord_types = {"plain boards", "grain boards"}
