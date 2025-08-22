@@ -1,1 +1,1 @@
-pyinstaller --onefile --add-data "template.xls;." -n "Cutting Generator v1.2.0" app.py
+pyinstaller --onefile --add-data "template.xls;." -n "Cutting Generator v1.3.0" app.py

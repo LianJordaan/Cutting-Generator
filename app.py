@@ -9,7 +9,7 @@ import xlwt
 import ctypes
 
 APP_NAME = "Cutting Generator"
-APP_VERSION = "v1.2.0"
+APP_VERSION = "v1.3.0"
 AUTHOR = "Lian Jordaan"
 
 valid_bord_types = {"plain boards", "grain boards"}
@@ -133,16 +133,25 @@ def process_excel(file_path, template_path):
             loop_edging_category = str(get_cell_value(file_path, loop_row, 8, sheet_index)).lower()
             loop_edging_name = str(get_cell_value(file_path, loop_row, 9, sheet_index)).lower()
 
+            loop_remark = ""
+            if (get_cell_value(file_path, loop_row, 10, sheet_index) != None):
+                loop_remark = str(get_cell_value(file_path, loop_row, 10, sheet_index)).lower()
+
             # Normalization
             loop_edging_category = loop_edging_category.replace("pvc", "")
             loop_edging_category = loop_edging_category.replace("0.4mm", "pvc")
             loop_edging_category = loop_edging_category.replace("3mm", "2x36")
+
             edging_string = f"{loop_edging_category} {loop_edging_name}".upper()
+            edging_string_remark = f"{loop_edging_category} {loop_edging_name} {loop_remark}".upper()
 
             if "NO EDGING" in edging_string:
                 edging_string = "NO EDGING"
+            
+            if "NO EDGING" in edging_string_remark:
+                edging_string_remark = "NO EDGING"
 
-            ws.write(loop_row-1, 10, edging_string, style_border_all_thin)
+            ws.write(loop_row-1, 10, edging_string_remark, style_border_all_thin)
 
             if edging_string not in unique_edging:
                 unique_edging.append(edging_string)
