@@ -1,0 +1,137 @@
+Tables:
+ - CUSTOMER
+ - QUOTE
+ - CUTLIST
+ - CUT_LIST_DETAIL
+ - BOARD_TYPES
+ - BOARD_CATEGORY
+ - EDGE_TYPES
+ - EDGE_CATEGORY
+ - CROSSCUTS
+ - CUTOUTS
+ - MITRES
+ - GROOVES
+ - DB_INFO
+ - EXTRAS
+ - CONFIGURATION 
+
+Columns in CUSTOMER:
+ - NAME (type code: 37)
+ - STREET (type code: 37)
+ - SUBURB (type code: 37)
+ - CITY (type code: 37)
+ - CUSTOMER_ID (type code: 8)
+ - CONTACT_NR (type code: 37) 
+
+Columns in QUOTE:
+ - QUOTE_DATE (type code: 12)
+ - JOB_NAME (type code: 37)
+ - QUOTE_NR (type code: 8)
+ - CUSTOMER_ID (type code: 8)
+ - QUOTE_PRICE (type code: 27)
+ - SIZEMODE (type code: 7) 
+
+Columns in CUTLIST:
+ - CUTLIST_ID (type code: 8)
+ - QUOTE_NR (type code: 8)
+ - STATUS (type code: 7)
+ - OPTIMIZE_MODE (type code: 7)
+ - BUILD_TYPE (type code: 37) 
+
+Columns in CUT_LIST_DETAIL:
+ - ITEM_ID (type code: 8)
+ - QUOTE_NR (type code: 8)
+ - CUTLIST_ID (type code: 8)
+ - BOARD_ID (type code: 8)
+ - EDGE_ID (type code: 8)
+ - LENGTE (type code: 8)
+ - WYDTE (type code: 8)
+ - QTY (type code: 8)
+ - EDGEL (type code: 8)
+ - EDGEW (type code: 8)
+ - HOLESL (type code: 8)
+ - HOLESW (type code: 8)
+ - AREA (type code: 8)
+ - UNIT_ID (type code: 8)
+ - COMPONENT_ID (type code: 8)
+ - REMARKS (type code: 37) 
+
+Columns in BOARD_TYPES:
+ - BOARD_NAME (type code: 37)
+ - BOARD_ID (type code: 8)
+ - BCAT_ID (type code: 8)
+ - BOARD_LENGTH (type code: 8)
+ - BOARD_WIDTH (type code: 8)
+ - BOARD_THICKNESS (type code: 8)
+ - BOARD_PRICE (type code: 8) 
+
+Columns in BOARD_CATEGORY:
+ - BCAT_NAME (type code: 37)
+ - BCAT_ID (type code: 8)
+ - GRAIN (type code: 37) 
+
+Columns in EDGE_TYPES:
+ - EDGE_NAME (type code: 37)
+ - EDGE_ID (type code: 8)
+ - ECAT_ID (type code: 8)
+ - EDGE_PRICE (type code: 8) 
+
+Columns in EDGE_CATEGORY:
+ - ECAT_NAME (type code: 37)
+ - ECAT_ID (type code: 8)
+ - EDGE_PRICE (type code: 8)
+ - DIKTE (type code: 7) 
+
+Columns in CROSSCUTS:
+ - QUOTE_NR (type code: 8)
+ - CUTLIST_ID (type code: 8)
+ - ITEM_ID (type code: 8)
+ - CC_ID (type code: 8)
+ - LENGTE (type code: 8)
+ - SPLIT (type code: 8)
+ - HOLES_L (type code: 8)
+ - HOLES_S (type code: 8)
+ - LSWING (type code: 37) 
+
+Columns in CUTOUTS:
+ - QUOTE_NR (type code: 8)
+ - CUTLIST_ID (type code: 8)
+ - ITEM_ID (type code: 8)
+ - CUTOUT1 (type code: 37)
+ - CUTOUT2 (type code: 37) 
+
+Columns in MITRES:
+ - QUOTE_NR (type code: 8)
+ - CUTLIST_ID (type code: 8)
+ - ITEM_ID (type code: 8)
+ - MITRE_L (type code: 37)
+ - MITRE_W (type code: 37) 
+
+Columns in GROOVES:
+ - QUOTE_NR (type code: 8)
+ - CUTLIST_ID (type code: 8)
+ - ITEM_ID (type code: 8)
+ - GROOVE_L (type code: 37)
+ - GROOVE_W (type code: 37) 
+
+Columns in DB_INFO:
+ - VERSION (type code: 8)
+ - ID (type code: 7) 
+
+Columns in EXTRAS:
+ - CUSTOMER_ID (type code: 8)
+ - HOLE_PRICE (type code: 10)
+ - CUTOUT_PRICE (type code: 10)
+ - MITRE_PRICE (type code: 10)
+ - GROOVE_PRICE (type code: 10) 
+
+Columns in CONFIGURATION:
+ - ID (type code: 8)
+ - USEFINAL (type code: 37)
+ - EDGEMODE (type code: 37)
+ - OPT_MODE (type code: 8)
+ - BLADE_W (type code: 8)
+ - EDGE_OFFCUT (type code: 8)
+ - PREMIL (type code: 27)
+ - VATRATE (type code: 27)
+
