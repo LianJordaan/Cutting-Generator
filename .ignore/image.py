@@ -1,3 +1,4 @@
+import tempfile
 import matplotlib.pyplot as plt
 from reportlab.lib.pagesizes import A4  # removed landscape
 from reportlab.pdfgen import canvas
@@ -89,7 +90,6 @@ def build_shape_from_tuple(data_tuple):
         }
 
     elif shape_type == "21":
-        print(length, value1, value1/2)
         template = {
             "lines": [
                 (0, 0, length, 0),                             # bottom
@@ -103,7 +103,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.0, 0.5, -5, 0, 'right'),  # left mid
                 (0.5, 0.5, 0, 0, 'center'),  # center of the shape
                 (value_to_relative(0, length, value1 / 2), 1.0, 0, 5, 'center'),  # near top left
-                (1.0, value_to_relative(0, width, value2/2), 5, 0, 'left'),      # near bottom right
+                (1.0, value_to_relative(0, width, value2/2), 0, 0, 'left'),      # near bottom right
             ],
         }
 
@@ -164,6 +164,43 @@ def build_shape_from_tuple(data_tuple):
         }
 
         
+    elif shape_type == "41":
+        template = {
+            "lines": [
+                (0, 0, value1, 0),
+                (value1, 0, length, width-value2),
+                (length, width-value2, length, width),
+                (length, width, 0, width),
+                (0, width, 0, 0),
+            ],
+            "label_positions": [
+                (0.5, 1, 0, 5, 'center'),    # label above center
+                (0, 0.5, -5, 0, 'right'),        # right side, offset right
+                (0.5, 0.5, 0, 0, 'center'),     # middle center
+                (value_to_relative(0, length, value1 / 2), 0, 0, -10, 'center'),  # near top left
+                (1.0, value_to_relative(0, width, (width) - (value2/2)), 0, 0, 'left'),      # near bottom right
+            ],
+        }   
+
+    elif shape_type == "42":
+        template = {
+            "lines": [
+                (0, 0, value1, 0),
+                (value1, 0, value1, width-value2),
+                (value1, width-value2, length, width-value2),
+                (length, width-value2, length, width),
+                (length, width, 0, width),
+                (0, width, 0, 0),
+            ],
+            "label_positions": [
+                (0.5, 1, 0, 5, 'center'),    # label above center
+                (0, 0.5, -5, 0, 'right'),        # right side, offset right
+                (0.5, 0.5, 0, 0, 'center'),     # middle center
+                (value_to_relative(0, length, value1 / 2), 0, 0, -10, 'center'),  # near top left
+                (1.0, value_to_relative(0, width, (width) - (value2/2)), 0, 0, 'left'),      # near bottom right
+            ],
+        }
+
     else:
         raise ValueError(f"Unknown shape type: {shape_type}")
 
@@ -223,10 +260,7 @@ def draw_shape(ax, shape):
     ax.axis('off')
 
 # ==== 4. Generate one batch image (12 shapes max) ====
-def plot_shapes_batch(shapes, batch_num, output_dir="plots"):
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
+def plot_shapes_batch(shapes, batch_num, output_dir):
     fig, axes = plt.subplots(4, 3, figsize=(8.27, 11.69))  # A4 portrait
     axes = axes.flatten()
 
@@ -258,16 +292,20 @@ def shapes_to_pdf(shape_tuples, output_pdf="cutout_shapes.pdf"):
     batch_size = 12
     image_paths = []
 
-    # Build shape dicts from tuples
     shape_objects = [build_shape_from_tuple(t) for t in shape_tuples]
 
-    for i in range(0, len(shape_objects), batch_size):
-        batch = shape_objects[i:i+batch_size]
-        img_path = plot_shapes_batch(batch, i // batch_size)
-        image_paths.append(img_path)
+    # Create a temporary directory
+    with tempfile.TemporaryDirectory() as temp_dir:
+        for i in range(0, len(shape_objects), batch_size):
+            batch = shape_objects[i:i+batch_size]
+            img_path = plot_shapes_batch(batch, i // batch_size, output_dir=temp_dir)
+            image_paths.append(img_path)
 
-    create_pdf_from_images(image_paths, output_pdf)
+        create_pdf_from_images(image_paths, output_pdf)
+
     print(f"✅ PDF created with {len(image_paths)} pages: {output_pdf}")
+    # Temporary directory and its contents are automatically cleaned up
+
 
 # ==== 7. Example usage ====
 if __name__ == "__main__":
@@ -278,8 +316,8 @@ if __name__ == "__main__":
         ("22", 1007, 508, 1, 560, 218),
         ("31", 1009, 510, 1, 540, 250),
         ("32", 1011, 512, 1, 560, 242),
-        # ("41", 1013, 514, 1, 560, 234),
-        # ("42", 1015, 516, 1, 560, 226)
+        ("41", 1013, 514, 1, 560, 234),
+        ("42", 1015, 516, 1, 560, 226)
     ]
 
     # Fill up to more than one page
