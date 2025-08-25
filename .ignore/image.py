@@ -44,6 +44,7 @@ def value_to_relative(min_val, max_val, value):
 def build_shape_from_tuple(data_tuple):
     shape_type = data_tuple[0]
     label_values = list(data_tuple[1:])  # 5 labels
+    label_values[2] = str(label_values[2]) + "x"
 
     if len(label_values) != 5:
         raise ValueError("Expected 5 label values: length, width, amount, value1, value2")
@@ -60,7 +61,7 @@ def build_shape_from_tuple(data_tuple):
                 (0, value2, 0, 0),
             ],
             "label_positions": [
-                (0.5, 0, 0, -15, 'center'),    # label below center
+                (0.5, 0, 0, -10, 'center'),    # label below center
                 (1.0, 0.5, 0, 0, 'left'),        # right side, offset right
                 (0.5, 0.5, 0, 0, 'center'),     # middle center
                 (value_to_relative(0, length, (length)-(value1/2)), 1.0, 0, 5, 'center'),     # near top right
@@ -79,7 +80,7 @@ def build_shape_from_tuple(data_tuple):
                 (0, value2, 0, 0),
             ],
             "label_positions": [
-                (0.5, 0, 0, -15, 'center'),    # label below center
+                (0.5, 0, 0, -10, 'center'),    # label below center
                 (1.0, 0.5, 0, 0, 'left'),        # right side, offset right
                 (0.5, 0.5, 0, 0, 'center'),     # middle center
                 (value_to_relative(0, length, (length)-(value1/2)), 1.0, 0, 5, 'center'),     # near top right
@@ -98,7 +99,7 @@ def build_shape_from_tuple(data_tuple):
                 (0, width, 0, 0),                              # left vertical
             ],
             "label_positions": [
-                (0.5, 0.0, 0, -15, 'center'),  # centered below
+                (0.5, 0.0, 0, -10, 'center'),  # centered below
                 (0.0, 0.5, -5, 0, 'right'),  # left mid
                 (0.5, 0.5, 0, 0, 'center'),  # center of the shape
                 (value_to_relative(0, length, value1 / 2), 1.0, 0, 5, 'center'),  # near top left
@@ -117,7 +118,7 @@ def build_shape_from_tuple(data_tuple):
                 (0, width, 0, 0),                              # left vertical
             ],
             "label_positions": [
-                (0.5, 0.0, 0, -15, 'center'),  # centered below
+                (0.5, 0.0, 0, -10, 'center'),  # centered below
                 (0.0, 0.5, -5, 0, 'right'),  # left mid
                 (0.5, 0.5, 0, 0, 'center'),  # center of the shape
                 (value_to_relative(0, length, value1 / 2), 1.0, 0, 5, 'center'),  # near top left
@@ -125,6 +126,44 @@ def build_shape_from_tuple(data_tuple):
             ],
         }
 
+    elif shape_type == "31":
+        template = {
+            "lines": [
+                (length, 0, length, width),
+                (length, width, 0, width),
+                (0, width, 0, width-value2),
+                (0, width-value2, length-value1, 0),
+                (length-value1, 0, length, 0),
+            ],
+            "label_positions": [
+                (0.5, 1, 0, 5, 'center'),    # label above center
+                (1.0, 0.5, 0, 0, 'left'),        # right side, offset right
+                (0.5, 0.5, 0, 0, 'center'),     # middle center
+                (value_to_relative(0, length, (length)-(value1/2)), 0, 0, -10, 'center'),     # near top right
+                (0.0, value_to_relative(0, width, (width) - (value2/2)), -5, 0, 'right'),      # near bottom left
+            ],
+        }
+
+    elif shape_type == "32":
+        template = {
+            "lines": [
+                (length, 0, length, width),
+                (length, width, 0, width),
+                (0, width, 0, width-value2),
+                (0, width-value2, length-value1, width-value2),
+                (length-value1, width-value2, length-value1, 0),
+                (length-value1, 0, length, 0),
+            ],
+            "label_positions": [
+                (0.5, 1, 0, 5, 'center'),    # label above center
+                (1.0, 0.5, 0, 0, 'left'),        # right side, offset right
+                (0.5, 0.5, 0, 0, 'center'),     # middle center
+                (value_to_relative(0, length, (length)-(value1/2)), 0, 0, -10, 'center'),     # near bottom right
+                (0.0, value_to_relative(0, width, (width) - (value2/2)), -5, 0, 'right'),      # near top left
+            ],
+        }
+
+        
     else:
         raise ValueError(f"Unknown shape type: {shape_type}")
 
@@ -236,7 +275,11 @@ if __name__ == "__main__":
         ("11", 1001, 502, 1, 200, 122),
         ("12", 1003, 504, 1, 560, 244),
         ("21", 1005, 506, 1, 560, 226),
-        ("22", 1007, 508, 1, 560, 218)
+        ("22", 1007, 508, 1, 560, 218),
+        ("31", 1009, 510, 1, 540, 250),
+        ("32", 1011, 512, 1, 560, 242),
+        # ("41", 1013, 514, 1, 560, 234),
+        # ("42", 1015, 516, 1, 560, 226)
     ]
 
     # Fill up to more than one page
