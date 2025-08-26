@@ -99,6 +99,8 @@ def process_excel(file_path, template_path):
             for loop_row in range(7, last_empty_row + 1):
                 value = get_cell_value(file_path, loop_row, loop_col, sheet_index)
                 ws.write(loop_row-1, loop_col, value, style_border_all_thin)
+
+                print(f"[INFO] Writing to template sheet {sheet_index + 1}: Row {loop_row}, Col {loop_col}, Value: {value}")
         print(f"[INFO] Table data written to template sheet {sheet_index + 1}")
 
         # Process edging information
