@@ -7,6 +7,7 @@ from excel_processor import *
 from config_utils import *
 from setup_gui import *
 from helpers import *
+from shape_gen import *
 
 APP_NAME = "Cutting Generator"
 APP_VERSION = "v2.0.0"
@@ -41,7 +42,7 @@ if __name__ == "__main__":
         file_path = sys.argv[1]
         template_path = os.path.join(base_path, "template.xls")
         
-        customer_name = get_customer_name(file_path)
+        qoute_num = find_quote_num(file_path)
         job_name = get_job_name(file_path)
 
         process_excel(file_path, template_path)
@@ -49,11 +50,28 @@ if __name__ == "__main__":
         print(f"Processed file: {file_path}")
         print("Attempting to search for cutouts...")
         try:
-            cutouts = find_cutouts(customer_name, job_name)
+            cutouts = find_cutouts(qoute_num)
             if cutouts:
                 print("✅ Cutouts found:")
+                parsed_cutouts = []
+
                 for cutout in cutouts:
-                    print(cutout)
+                    length = cutout[2]
+                    width = cutout[3]
+                    amount = cutout[4]
+                    code = cutout[5]
+
+                    shape_id = code[:2]
+                    value1 = int(code[2:6])
+                    value2 = int(code[6:]) 
+
+                    parsed_cutouts.append((shape_id, length, width, amount, value1, value2))
+                
+                output_filename = f"SHAPES {job_name}.pdf"
+                output_path = os.path.join(os.path.dirname(file_path), output_filename)
+
+                shapes_to_pdf(parsed_cutouts, output_pdf=output_path)
+
             else:
                 print("❌ No cutouts found for this customer and job.")
         except Exception as e:
