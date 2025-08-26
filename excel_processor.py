@@ -6,6 +6,7 @@ from xlutils.copy import copy as xl_copy
 from openpyxl import load_workbook
 import warnings
 from config_utils import *
+from tqdm import tqdm
 
 valid_bord_types = {"plain boards", "grain boards"}
 invalid_bord_names = {"own peen", "own grain", "top 600", "top 900"}
@@ -95,22 +96,29 @@ def process_excel(file_path, template_path):
         last_empty_row = get_last_nonempty_row(file_path, 1, 7, sheet_index)
         print(f"[INFO] Last non-empty row in sheet {sheet_index + 1}: {last_empty_row}")
 
+        total_cells = (last_empty_row - 6) * 7  # Total cells to process (rows × columns)
+        progress_bar = tqdm(total=total_cells, desc=f"📄 Processing data for sheet {sheet_index + 1}")
+
         for loop_col in range(1, 8):
             for loop_row in range(7, last_empty_row + 1):
                 value = get_cell_value(file_path, loop_row, loop_col, sheet_index)
-                ws.write(loop_row-1, loop_col, value, style_border_all_thin)
+                ws.write(loop_row - 1, loop_col, value, style_border_all_thin)
+                
+                progress_bar.update(1)
 
-                print(f"[INFO] Writing to template sheet {sheet_index + 1}: Row {loop_row}, Col {loop_col}, Value: {value}")
+        progress_bar.close()
         print(f"[INFO] Table data written to template sheet {sheet_index + 1}")
+
 
         # Process edging information
         unique_edging = []
-        for loop_row in range(7, last_empty_row + 1):
+        print("🔧 Processing edging information...")
+        for loop_row in tqdm(range(7, last_empty_row + 1), desc="Edging rows"):
             loop_edging_category = str(get_cell_value(file_path, loop_row, 8, sheet_index)).lower()
             loop_edging_name = str(get_cell_value(file_path, loop_row, 9, sheet_index)).lower()
 
             loop_remark = ""
-            if (get_cell_value(file_path, loop_row, 10, sheet_index) != None):
+            if get_cell_value(file_path, loop_row, 10, sheet_index) is not None:
                 loop_remark = str(get_cell_value(file_path, loop_row, 10, sheet_index)).lower()
 
             # Normalization
@@ -127,7 +135,7 @@ def process_excel(file_path, template_path):
             if "NO EDGING" in edging_string_remark:
                 edging_string_remark = "NO EDGING"
 
-            ws.write(loop_row-1, 10, edging_string_remark, style_border_all_thin)
+            ws.write(loop_row - 1, 10, edging_string_remark, style_border_all_thin)
 
             if edging_string not in unique_edging:
                 unique_edging.append(edging_string)
