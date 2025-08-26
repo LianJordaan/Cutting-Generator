@@ -308,19 +308,19 @@ def shapes_to_pdf(shape_tuples, output_pdf="cutout_shapes.pdf"):
 
 
 # ==== 7. Example usage ====
-if __name__ == "__main__":
-    shape_tuples = [
-        ("11", 1001, 502, 1, 200, 122),
-        ("12", 1003, 504, 1, 560, 244),
-        ("21", 1005, 506, 1, 560, 226),
-        ("22", 1007, 508, 1, 560, 218),
-        ("31", 1009, 510, 1, 540, 250),
-        ("32", 1011, 512, 1, 560, 242),
-        ("41", 1013, 514, 1, 560, 234),
-        ("42", 1015, 516, 1, 560, 226)
-    ]
+# if __name__ == "__main__":
+#     shape_tuples = [
+#         ("11", 1001, 502, 1, 200, 122),
+#         ("12", 1003, 504, 1, 560, 244),
+#         ("21", 1005, 506, 1, 560, 226),
+#         ("22", 1007, 508, 1, 560, 218),
+#         ("31", 1009, 510, 1, 540, 250),
+#         ("32", 1011, 512, 1, 560, 242),
+#         ("41", 1013, 514, 1, 560, 234),
+#         ("42", 1015, 516, 1, 560, 226)
+#     ]
 
-    # Fill up to more than one page
-    shape_tuples *= 1  # make ~18 shapes
+#     # Fill up to more than one page
+#     shape_tuples *= 1  # make ~18 shapes
 
-    shapes_to_pdf(shape_tuples, output_pdf="custom_shapes.pdf")
+#     shapes_to_pdf(shape_tuples, output_pdf="custom_shapes.pdf")

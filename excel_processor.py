@@ -317,7 +317,7 @@ def make_border_style(top, right, bottom, left, font_name='Calibri', font_size=1
 
 import fdb
 
-def find_cutouts(customer_name, job_name):
+def find_cutouts(quote_nr):
     config = load_config()
     ip = config.get("ip", None)
     port = config.get("port", "3050")
@@ -337,33 +337,6 @@ def find_cutouts(customer_name, job_name):
         charset=f'{charset}'
     )
     cur = con.cursor()
-
-    # Get customer_id
-    cur.execute("SELECT CUSTOMER_ID, NAME FROM CUSTOMER")
-    customers = cur.fetchall()
-    customer_id = None
-    for customer in customers:
-        if customer_name.upper() in customer[1].upper():
-            customer_id = customer[0]
-            break
-    if not customer_id:
-        cur.close()
-        con.close()
-        return []
-
-    # Get quote_nr
-    cur.execute("""
-        SELECT QUOTE_NR
-        FROM QUOTE
-        WHERE CUSTOMER_ID = ?
-          AND UPPER(JOB_NAME) = UPPER(?)
-    """, (customer_id, job_name))
-    row = cur.fetchone()
-    if not row:
-        cur.close()
-        con.close()
-        return []
-    quote_nr = row[0]
 
     # Get cutlist_ids
     cur.execute("""
