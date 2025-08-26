@@ -338,6 +338,7 @@ def find_cutouts(quote_nr):
     )
     cur = con.cursor()
 
+    print("[INFO] Searcing cutlist ids for quote number:", quote_nr)
     # Get cutlist_ids
     cur.execute("""
         SELECT CUTLIST_ID
@@ -350,8 +351,12 @@ def find_cutouts(quote_nr):
         con.close()
         return []
 
+    print("[INFO] Found cutlist IDs:", cutlist_ids)
+    print("[INFO] Fetching cutout details...")
+
     results = []
     for cutlist_id in cutlist_ids:
+        print("[INFO] Processing cutlist ID:", cutlist_id)
         cur.execute("""
             SELECT ITEM_ID, LENGTE, WYDTE, QTY
             FROM CUT_LIST_DETAIL
@@ -365,6 +370,8 @@ def find_cutouts(quote_nr):
             """, (quote_nr, cutlist_id, item_id))
             cutout_row = cur.fetchone()
             if cutout_row:
+                print("[INFO] Found cutouts for item ID:", item_id)
+                print("[INFO] Data for piece with cutout: Length:", lengte, "Width:", wydte, "Qty:", qty, "Cutout Data:", cutout_row)
                 cutout1, cutout2 = cutout_row
                 results.append((item_id, cutlist_id, lengte, wydte, qty, cutout1, cutout2))
 

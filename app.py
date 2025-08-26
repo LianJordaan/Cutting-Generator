@@ -78,7 +78,7 @@ if __name__ == "__main__":
             print(f"❌ Error while searching for cutouts: {e}")
             print("Please ensure the database configuration is correct in the setup.")
         
-        input("Done. You may now close this window...")
+        # input("Done. You may now close this window...")
         refresh_desktop()
     else:
         print("No file provided. Please drag an Excel file onto this program.")
