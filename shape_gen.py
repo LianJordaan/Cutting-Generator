@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from reportlab.lib.pagesizes import A4  # removed landscape
 from reportlab.pdfgen import canvas
 import os
+from tqdm import tqdm
 
 # ==== 1. Global shape definitions ====
 
@@ -220,29 +221,27 @@ def draw_shape(ax, shape):
     for (x1, y1, x2, y2) in lines:
         ax.plot([x1, x2], [y1, y2], 'k')
 
-    # 2. Compute bounding box of shape
+    # 2. Compute bounding box
     all_x = [x for line in lines for x in (line[0], line[2])]
     all_y = [y for line in lines for y in (line[1], line[3])]
     min_x, max_x = min(all_x), max(all_x)
     min_y, max_y = min(all_y), max(all_y)
 
-    # 3. Set limits before drawing labels so they match
     ax.set_xlim(min_x - 10, max_x + 10)
     ax.set_ylim(min_y - 10, max_y + 10)
-
     ax.set_aspect('equal')
-    # 4. Draw labels
-    for i, label_info in enumerate(label_positions):
+
+    # 3. Draw labels with progress bar
+    for i, label_info in enumerate(tqdm(label_positions, desc="Drawing labels", leave=False)):
         if i >= len(labels):
             continue
 
         if len(label_info) != 5:
-            raise ValueError("Each label position must be a 5-tuple: (rel_x, rel_y, offset_x, offset_y, align)")
+            raise ValueError("Each label position must be a 5-tuple")
 
         rel_x, rel_y, offset_x, offset_y, align = label_info
         label = str(labels[i])
 
-        # Use bounding box min as the anchor
         draw_label_with_relative_and_pixel_offset(
             ax,
             base_x=0,
@@ -255,18 +254,18 @@ def draw_shape(ax, shape):
             align=align
         )
 
-    ax.grid(True)  # Show grid for easier visual alignment
-
+    ax.grid(True)
     ax.axis('off')
 
-# ==== 4. Generate one batch image (12 shapes max) ====
 def plot_shapes_batch(shapes, batch_num, output_dir):
     fig, axes = plt.subplots(4, 3, figsize=(8.27, 11.69))  # A4 portrait
     axes = axes.flatten()
 
-    for i, shape in enumerate(shapes):
+    print(f"🎨 Drawing shapes for page {batch_num + 1}...")
+    for i, shape in enumerate(tqdm(shapes, desc=f"Shapes in batch {batch_num + 1}", leave=False)):
         draw_shape(axes[i], shape)
 
+    # Hide unused axes
     for j in range(len(shapes), 12):
         axes[j].axis('off')
 
@@ -275,6 +274,7 @@ def plot_shapes_batch(shapes, batch_num, output_dir):
     plt.savefig(filepath, dpi=300)
     plt.close()
     return filepath
+
 
 # ==== 5. Compile images into a PDF ====
 def create_pdf_from_images(image_paths, output_path="output.pdf"):
@@ -292,18 +292,27 @@ def shapes_to_pdf(shape_tuples, output_pdf="cutout_shapes.pdf"):
     batch_size = 12
     image_paths = []
 
-    shape_objects = [build_shape_from_tuple(t) for t in shape_tuples]
+    # Top-level progress bar for generating all shape objects
+    print("🚧 Building shape data...")
+    shape_objects = []
+    for t in tqdm(shape_tuples, desc="Generating shapes"):
+        shape_objects.append(build_shape_from_tuple(t))
 
-    # Create a temporary directory
+    # Temporary directory to save intermediate images
     with tempfile.TemporaryDirectory() as temp_dir:
+        # Batch drawing with progress
+        print("🖼️ Drawing shape batches...")
         for i in range(0, len(shape_objects), batch_size):
-            batch = shape_objects[i:i+batch_size]
+            batch = shape_objects[i:i + batch_size]
+
             img_path = plot_shapes_batch(batch, i // batch_size, output_dir=temp_dir)
             image_paths.append(img_path)
 
+        # Compile to PDF
         create_pdf_from_images(image_paths, output_pdf)
 
     print(f"✅ PDF created with {len(image_paths)} pages: {output_pdf}")
+
     # Temporary directory and its contents are automatically cleaned up
 
 
