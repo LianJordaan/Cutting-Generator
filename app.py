@@ -1,5 +1,10 @@
+print("🚀 Starting Cutting Generator...")
+
 import sys
 import os
+
+print("Loading libraries...")
+
 from openpyxl import load_workbook
 from xlutils.copy import copy as xl_copy
 from setup_gui import setup, get_setup_info
@@ -8,6 +13,8 @@ from config_utils import *
 from setup_gui import *
 from helpers import *
 from shape_gen import *
+
+print("Libraries loaded.")
 
 APP_NAME = "Cutting Generator"
 APP_VERSION = "v2.0.0"
