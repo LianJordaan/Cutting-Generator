@@ -88,4 +88,5 @@ if __name__ == "__main__":
         # input("Done. You may now close this window...")
         refresh_desktop()
     else:
+        setup()
         print("No file provided. Please drag an Excel file onto this program.")

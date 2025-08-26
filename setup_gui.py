@@ -31,8 +31,8 @@ def setup():
         root.destroy()
 
     root = tk.Tk()
-    root.title("Setup Firebird DB Connection")
-    root.geometry("400x300")
+    root.title("Setup Firebird DB Connection (Same as Cutting Manager)")
+    root.geometry("500x300")
 
     # Load existing config if present
     existing_config = load_config()
@@ -81,7 +81,6 @@ def setup():
     submit_btn.grid(row=6, column=0, columnspan=2, pady=15)
 
     root.mainloop()
-
 def get_setup_info() -> dict:
     """Return the decrypted config dict, or None if missing"""
     from config_utils import load_config
