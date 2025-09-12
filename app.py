@@ -17,7 +17,7 @@ from shape_gen import *
 print("Libraries loaded.")
 
 APP_NAME = "Cutting Generator"
-APP_VERSION = "v2.0.0"
+APP_VERSION = "v3.0.0"
 AUTHOR = "Lian Jordaan"
 
 WINDOW_TITLE = f"{APP_NAME} {APP_VERSION} - {AUTHOR}"
@@ -43,6 +43,12 @@ if __name__ == "__main__":
     if not config:
         setup()
         config = get_setup_info()
+    
+    if not config.get("agree_terms"):
+        print("You must agree to the terms and conditions before using this software.")
+        print("Please re-run the setup and agree to the terms.")
+        setup()
+        sys.exit(0)
 
 
     if len(sys.argv) > 1:

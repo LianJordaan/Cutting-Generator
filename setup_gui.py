@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
 from config_utils import save_config, load_config
+from helpers import open_license_link
+import datetime
 
 def setup():
     """Open GUI to input config"""
@@ -12,10 +14,18 @@ def setup():
         password = password_entry.get().strip()
         filepath = filepath_entry.get().strip() or "C:/ZAWare/DB/CutMan/CUTMAN.FDB"
         charset = charset_entry.get().strip() or "UTF8"
+        agree_terms = agree_terms_entry.get()
 
         if not ip or not username or not password:
             messagebox.showerror("Error", "IP, username and password are required!")
             return
+        
+        agree_time = None
+        if existing_config and "agree_time" in existing_config:
+            agree_time = existing_config["agree_time"]
+        else:
+            if agree_terms:  # only set time if they agreed
+                agree_time = datetime.now().isoformat()
 
         config_data = {
             "ip": ip,
@@ -24,6 +34,8 @@ def setup():
             "password": password,
             "filepath": filepath,
             "charset": charset,
+            "agree_terms": agree_terms,
+            "agree_time": agree_time
         }
 
         save_config(config_data)
@@ -32,11 +44,12 @@ def setup():
 
     root = tk.Tk()
     root.title("Setup Firebird DB Connection (Same as Cutting Manager)")
-    root.geometry("500x300")
+    root.geometry("500x350")
 
     # Load existing config if present
+    global existing_config
     existing_config = load_config()
-    
+
     tk.Label(root, text="IP Address *").grid(row=0, column=0, sticky="w", padx=5, pady=5)
     ip_entry = tk.Entry(root, width=30)
     ip_entry.grid(row=0, column=1)
@@ -77,8 +90,27 @@ def setup():
     else:
         charset_entry.insert(0, "UTF8")
 
-    submit_btn = tk.Button(root, text="Save", command=on_submit)
-    submit_btn.grid(row=6, column=0, columnspan=2, pady=15)
+    # Checkbox variable
+    agree_terms_entry = tk.IntVar(value=1 if existing_config and existing_config.get("agree_terms") else 0)
+
+    # Checkbox
+    agree_terms_check = tk.Checkbutton(
+        root,
+        text="I agree to the Terms of Service and that I am using this software at my own risk",
+        variable=agree_terms_entry,
+        wraplength=450,
+        justify="left"
+    )
+    agree_terms_check.grid(row=6, column=0, columnspan=2, pady=10)
+
+    # Optional: clickable license link
+    license_link = tk.Label(root, text="View License", fg="blue", cursor="hand2")
+    license_link.grid(row=7, column=0, columnspan=2, pady=(0, 10))
+    license_link.bind("<Button-1>", lambda e: open_license_link())
+
+    # Save button below everything
+    submit_btn = tk.Button(root, text="Save", command=on_submit, width=15)
+    submit_btn.grid(row=8, column=0, columnspan=2, pady=10)
 
     root.mainloop()
 def get_setup_info() -> dict:

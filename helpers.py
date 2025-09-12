@@ -1,5 +1,6 @@
 import ctypes
 import os
+import webbrowser
 
 # Constants for SHChangeNotify
 SHCNE_ASSOCCHANGED = 0x8000000  # Notify file type associations have changed
@@ -14,3 +15,6 @@ def find_quote_num(file_path):
     filename = os.path.basename(file_path)           # e.g., "123 - filename.xlsx"
     quote_num = filename.split(' ')[0]               # "123"
     return quote_num
+
+def open_license_link():
+    webbrowser.open("https://raw.githubusercontent.com/LianJordaan/Cutting-Generator/refs/heads/master/LICENSE.txt")
