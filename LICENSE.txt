@@ -36,6 +36,13 @@ agreement with Licensor.
     separate paid license agreement is obtained from Licensor.
 3.3 Licensor may terminate this Agreement immediately if Licensee
     breaches any terms of this Agreement.
+3.4 Any use of the Software without a valid license, including use
+    after termination of this Agreement, shall be considered
+    unlicensed use. In such cases, Licensee agrees to be liable for
+    retroactive license fees at the prevailing commercial rate,
+    currently set at USD $1 (one US dollars) per computer per day of
+    unauthorized use, in addition to any other rights and remedies
+    available to Licensor under law.
 
 4. Restrictions
 ---------------
@@ -46,7 +53,11 @@ b) Modify, adapt, translate, or create derivative works of the Software;
 c) Distribute, sublicense, lease, rent, or otherwise transfer the
    Software to any third party;
 d) Reverse engineer, decompile, or disassemble the Software, except
-   to the extent permitted by applicable law.
+   to the extent permitted by applicable law;
+e) Continue using the Software after termination of this Agreement,
+   unless a separate paid license agreement is obtained. Any such use
+   shall be deemed unlicensed and subject to the retroactive license
+   fee specified in Section 3.4.
 
 5. Ownership
 ------------
