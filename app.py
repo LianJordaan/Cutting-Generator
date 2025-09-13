@@ -43,12 +43,27 @@ if __name__ == "__main__":
     if not config:
         setup()
         config = get_setup_info()
+        print("Setup complete. Please re-run the program.")
+        print("Press enter to exit...")
+        input()
+        sys.exit(0)
     
     if not config.get("agree_terms"):
         print("You must agree to the terms and conditions before using this software.")
         print("Please re-run the setup and agree to the terms.")
-        setup()
+        print("Or type YES to automatically agree to the terms and conditions and continue...")
+
+        while True:
+            choice = input().strip().upper()
+            if choice == "YES" or choice == "Y":
+                config["agree_terms"] = True
+                save_config(config)
+                print("Thank you. Your agreement has been saved. Please re-run the program.")
+                break
+            else:
+                print("Please type YES to agree to the terms and conditions, or close the program.")
         sys.exit(0)
+
 
 
     if len(sys.argv) > 1:
