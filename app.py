@@ -59,6 +59,8 @@ if __name__ == "__main__":
                 config["agree_terms"] = True
                 save_config(config)
                 print("Thank you. Your agreement has been saved. Please re-run the program.")
+                print("Press enter to exit...")
+                input()
                 break
             else:
                 print("Please type YES to agree to the terms and conditions, or close the program.")
