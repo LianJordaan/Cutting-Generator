@@ -449,7 +449,7 @@ def find_crosscuts(quote_nr):
                 print("[INFO] Data for piece with crosscuts: Length:", lengte, "Width:", wydte, "Qty:", qty, "Crosscut Data:", list_of_lengths)
 
                 t = (lengte, wydte, qty)
-                extra = [a, b]
+                extra = list_of_lengths
 
                 # unpack the list so its elements are added, not the list itself
                 crosscut_data = (*t, *extra)
