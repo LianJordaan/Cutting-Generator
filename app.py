@@ -17,7 +17,7 @@ from shape_gen import *
 print("Libraries loaded.")
 
 APP_NAME = "Cutting Generator"
-APP_VERSION = "v3.0.0"
+APP_VERSION = "v4.0.0"
 AUTHOR = "Lian Jordaan"
 
 WINDOW_TITLE = f"{APP_NAME} {APP_VERSION} - {AUTHOR}"
@@ -81,8 +81,11 @@ if __name__ == "__main__":
         print("Attempting to search for cutouts...")
         try:
             cutouts = find_cutouts(qoute_num)
+            crosscuts = find_crosscuts(qoute_num)
             if cutouts:
                 print("✅ Cutouts found:")
+                if crosscuts:
+                    print("✅ Crosscuts found:")
                 parsed_cutouts = []
 
                 for cutout in cutouts:
@@ -100,7 +103,7 @@ if __name__ == "__main__":
                 output_filename = f"SHAPES {job_name}.pdf"
                 output_path = os.path.join(os.path.dirname(file_path), output_filename)
 
-                shapes_to_pdf(parsed_cutouts, output_pdf=output_path)
+                shapes_to_pdf(parsed_cutouts, crosscuts, output_pdf=output_path)
 
             else:
                 print("❌ No cutouts found for this customer and job.")

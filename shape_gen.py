@@ -217,9 +217,19 @@ def draw_shape(ax, shape):
     labels = shape["label_values"]
     label_positions = shape["label_positions"]
 
+    shape_type = shape.get("type", "unknown")
+
     # 1. Draw lines
+    counter = 0
     for (x1, y1, x2, y2) in lines:
-        ax.plot([x1, x2], [y1, y2], 'k')
+        counter += 1
+        thickness = 1.5
+        color = "k"
+        if shape_type == "crosscut":
+            if counter == 5 or counter == 6:
+                thickness = 0.5
+                color = "g"
+        ax.plot([x1, x2], [y1, y2], color, linewidth=thickness)
 
     # 2. Compute bounding box
     all_x = [x for line in lines for x in (line[0], line[2])]
@@ -257,6 +267,58 @@ def draw_shape(ax, shape):
     ax.grid(True)
     ax.axis('off')
 
+def build_crosscut_from_tuple(data_tuple):
+    label_values = list(data_tuple[:3])  # 3 labels, length, width, amount
+    label_values[2] = str(label_values[2]) + "x"
+
+    length, width, amount = label_values
+
+    crosscut_lenths = list(data_tuple[3:])
+
+    template = {
+        "lines": [
+            (0, 0, length, 0),
+            (length, 0, length, width),
+            (length, width, 0, width),
+            (0, width, 0, 0),
+            (0, 0, length, width/2),
+            (length, width/2, 0, width),
+        ],
+        "label_positions": [
+            (0.5, 0, 0, -10, 'center'),    # label below center
+            (1.0, 0.5, 0, 0, 'left'),        # right side, offset right
+            (0.5, 0.5, 0, 0, 'center'),     # middle center
+        ],
+    }
+
+    counter = 0
+    total_x = 0
+    max_lengths = len(crosscut_lenths)
+    for i in crosscut_lenths:
+        counter += 1
+        total_x += i
+
+        template["label_positions"].append((
+            value_to_relative(0, length, ((i/2)+total_x-i)),  # relative x
+            1.0,                                               # relative y (top)
+            0,                                                 # pixel offset x
+            -15,                                               # pixel offset y
+            'center'                                          # alignment
+        ))
+        label_values.append(i)
+
+        if counter == max_lengths:
+            break
+        template["lines"].append((total_x, 0, total_x, width))
+        print("TEST")
+
+    return {
+        "type": "crosscut",
+        "lines": template["lines"],
+        "label_positions": template["label_positions"],
+        "label_values": label_values,
+    }
+
 def plot_shapes_batch(shapes, batch_num, output_dir):
     fig, axes = plt.subplots(4, 3, figsize=(8.27, 11.69))  # A4 portrait
     axes = axes.flatten()
@@ -288,7 +350,7 @@ def create_pdf_from_images(image_paths, output_path="output.pdf"):
     c.save()
 
 # ==== 6. Main entry: generate PDF from shape tuples ====
-def shapes_to_pdf(shape_tuples, output_pdf="cutout_shapes.pdf"):
+def shapes_to_pdf(shape_tuples, crosscuts, output_pdf="cutout_shapes.pdf"):
     batch_size = 12
     image_paths = []
 
@@ -297,6 +359,8 @@ def shapes_to_pdf(shape_tuples, output_pdf="cutout_shapes.pdf"):
     shape_objects = []
     for t in tqdm(shape_tuples, desc="Generating shapes"):
         shape_objects.append(build_shape_from_tuple(t))
+    for t in tqdm(crosscuts, desc="Generating more shapes."):
+        shape_objects.append(build_crosscut_from_tuple(t))
 
     # Temporary directory to save intermediate images
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -332,4 +396,8 @@ def shapes_to_pdf(shape_tuples, output_pdf="cutout_shapes.pdf"):
 #     # Fill up to more than one page
 #     shape_tuples *= 1  # make ~18 shapes
 
-#     shapes_to_pdf(shape_tuples, output_pdf="custom_shapes.pdf")
+#     crosscuts = [
+#         (762, 593, 2, 185, 281, 281)
+#     ]
+
+#     shapes_to_pdf(shape_tuples, crosscuts, output_pdf="custom_shapes.pdf")
