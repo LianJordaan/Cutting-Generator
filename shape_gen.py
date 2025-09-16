@@ -310,7 +310,6 @@ def build_crosscut_from_tuple(data_tuple):
         if counter == max_lengths:
             break
         template["lines"].append((total_x, 0, total_x, width))
-        print("TEST")
 
     return {
         "type": "crosscut",
