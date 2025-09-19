@@ -17,7 +17,7 @@ from shape_gen import *
 print("Libraries loaded.")
 
 APP_NAME = "Cutting Generator"
-APP_VERSION = "v4.0.0"
+APP_VERSION = "v4.1.0"
 AUTHOR = "Lian Jordaan"
 
 WINDOW_TITLE = f"{APP_NAME} {APP_VERSION} - {AUTHOR}"
@@ -75,7 +75,7 @@ if __name__ == "__main__":
         qoute_num = find_quote_num(file_path)
         job_name = get_job_name(file_path)
 
-        process_excel(file_path, template_path)
+        boardNumbersToRecheck = process_excel(file_path, template_path)
 
         print(f"Processed file: {file_path}")
         print("Attempting to search for cutouts...")
@@ -113,6 +113,16 @@ if __name__ == "__main__":
         
         # input("Done. You may now close this window...")
         refresh_desktop()
+
+        if boardNumbersToRecheck:
+            print("\nThe following boards need to be rechecked due to invalid board types or names:\n")
+            for page, category, name in boardNumbersToRecheck:
+                print(f" - Page {page}: {category} → {name}")
+            print("\nPlease check these boards in the Cutting Manager software to see if they need to be processed manually.")
+            input("Press Enter to continue...")
+
+        input("Press Enter to exit...")
+
     else:
         setup()
         print("No file provided. Please drag an Excel file onto this program.")

@@ -13,6 +13,8 @@ invalid_bord_names = {"own peen", "own grain", "top 600", "top 900"}
 
 warnings.filterwarnings("ignore", message="Workbook contains no default style, apply openpyxl's default")
 
+boardNumbersToRecheck = []
+
 def get_customer_name(file_path):
     return get_cell_value(file_path, 1, 2)
 
@@ -190,14 +192,7 @@ def process_excel(file_path, template_path):
     wb_print.save(output_path_print)
     print("[INFO] Processing complete.")
 
-    if os.name == "nt":
-        import ctypes
-        import time
-        user32 = ctypes.windll.user32
-        progman = user32.FindWindowW("Progman", None)
-        if progman:
-            # 0x111 = WM_COMMAND, 0x7402 = Refresh
-            user32.SendMessageW(progman, 0x111, 0x7402, 0)
+    return boardNumbersToRecheck
 
 
 def set_column_width_px(ws, col_idx, pixels):
@@ -238,10 +233,19 @@ def is_sheet_valid(file_path, sheet_index=0):
     """
     valid_types = valid_bord_types
     invalid_names = invalid_bord_names
+
+    global boardNumbersToRecheck
+
+    board_category = "Unknown"
+    board_name = "Unknown"
+
     if file_path.lower().endswith('.xlsx'):
         wb = load_workbook(file_path, read_only=True, data_only=True)
         ws = wb.worksheets[sheet_index]
         value = ws['C4'].value
+        board_category = str(value).strip() if value else "Unknown"
+        name_value = ws['E4'].value
+        board_name = str(name_value).strip() if name_value else "Unknown"
         if isinstance(value, str) and value.strip().lower() in valid_types:
             name_value = ws['E4'].value
             if isinstance(name_value, str) and name_value.strip().lower() not in invalid_names:
@@ -250,10 +254,14 @@ def is_sheet_valid(file_path, sheet_index=0):
         book = xlrd.open_workbook(file_path)
         sheet = book.sheet_by_index(sheet_index)
         value = sheet.cell_value(2, 2)
+        board_category = str(value).strip() if value else "Unknown"
+        name_value = sheet.cell_value(2, 4)
+        board_name = str(name_value).strip() if name_value else "Unknown"
         if isinstance(value, str) and value.strip().lower() in valid_types:
             name_value = sheet.cell_value(2, 4)
             if isinstance(name_value, str) and name_value.strip().lower() not in invalid_names:
                 return True
+    boardNumbersToRecheck.append((sheet_index + 1, board_category, board_name))
     return False
 
 def count_valid_sheets(file_path):
