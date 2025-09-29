@@ -17,7 +17,7 @@ from shape_gen import *
 print("Libraries loaded.")
 
 APP_NAME = "Cutting Generator"
-APP_VERSION = "v4.1.0"
+APP_VERSION = "v4.1.1"
 AUTHOR = "Lian Jordaan"
 
 WINDOW_TITLE = f"{APP_NAME} {APP_VERSION} - {AUTHOR}"
@@ -110,6 +110,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"❌ Error while searching for cutouts: {e}")
             print("Please ensure the database configuration is correct in the setup.")
+            input()
         
         # input("Done. You may now close this window...")
         refresh_desktop()
