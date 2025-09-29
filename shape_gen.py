@@ -48,10 +48,11 @@ def build_shape_from_tuple(data_tuple):
     label_values = list(data_tuple[1:])  # 5 labels
     label_values[2] = str(label_values[2]) + "x"
 
-    if len(label_values) != 5:
-        raise ValueError("Expected 5 label values: length, width, amount, value1, value2")
+    if len(label_values) != 6:
+        raise ValueError("Expected 6 label values: length, width, amount, value1, value2, board_name")
 
-    length, width, amount, value1, value2 = label_values
+
+    length, width, amount, value1, value2, board_name = label_values
 
     if shape_type == "11":
         template = {
@@ -68,6 +69,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),     # middle center
                 (value_to_relative(0, length, (length)-(value1/2)), 1.0, 0, 5, 'center'),     # near top right
                 (0.0, value_to_relative(0, width, value2/2), -5, 0, 'right'),      # near bottom left
+                (0.5, 1.5, 0, 0, 'center')   # label above center
             ],
         }
 
@@ -87,6 +89,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),     # middle center
                 (value_to_relative(0, length, (length)-(value1/2)), 1.0, 0, 5, 'center'),     # near top right
                 (0.0, value_to_relative(0, width, value2/2), -5, 0, 'right'),      # near bottom left
+                (0.5, 1.5, 0, 0, 'center')   # label above center
             ],
         }
 
@@ -105,6 +108,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),  # center of the shape
                 (value_to_relative(0, length, value1 / 2), 1.0, 0, 5, 'center'),  # near top left
                 (1.0, value_to_relative(0, width, value2/2), 0, 0, 'left'),      # near bottom right
+                (0.5, 1.5, 0, 0, 'center')   # label above center
             ],
         }
 
@@ -124,6 +128,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),  # center of the shape
                 (value_to_relative(0, length, value1 / 2), 1.0, 0, 5, 'center'),  # near top left
                 (1.0, value_to_relative(0, width, value2/2), 5, 0, 'left'),      # near bottom right
+                (0.5, 1.5, 0, 0, 'center')   # label above center
             ],
         }
 
@@ -142,6 +147,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),     # middle center
                 (value_to_relative(0, length, (length)-(value1/2)), 0, 0, -10, 'center'),     # near top right
                 (0.0, value_to_relative(0, width, (width) - (value2/2)), -5, 0, 'right'),      # near bottom left
+                (0.5, 1.5, 0, 0, 'center')   # label above center
             ],
         }
 
@@ -161,6 +167,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),     # middle center
                 (value_to_relative(0, length, (length)-(value1/2)), 0, 0, -10, 'center'),     # near bottom right
                 (0.0, value_to_relative(0, width, (width) - (value2/2)), -5, 0, 'right'),      # near top left
+                (0.5, 1.5, 0, 0, 'center')   # label above center
             ],
         }
 
@@ -180,6 +187,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),     # middle center
                 (value_to_relative(0, length, value1 / 2), 0, 0, -10, 'center'),  # near top left
                 (1.0, value_to_relative(0, width, (width) - (value2/2)), 0, 0, 'left'),      # near bottom right
+                (0.5, 1.5, 0, 0, 'center')   # label above center
             ],
         }   
 
@@ -199,6 +207,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),     # middle center
                 (value_to_relative(0, length, value1 / 2), 0, 0, -10, 'center'),  # near top left
                 (1.0, value_to_relative(0, width, (width) - (value2/2)), 0, 0, 'left'),      # near bottom right
+                (0.5, 1.5, 0, 0, 'center')   # label above center
             ],
         }
 
@@ -210,12 +219,15 @@ def build_shape_from_tuple(data_tuple):
         "lines": template["lines"],
         "label_positions": template["label_positions"],
         "label_values": label_values,
+        "board_name": board_name,
     }
 
 def draw_shape(ax, shape):
     lines = shape["lines"]
     labels = shape["label_values"]
     label_positions = shape["label_positions"]
+    board_name = shape.get("board_name", "Unknown")
+    labels.append(board_name)  # Add board name as the last label
 
     shape_type = shape.get("type", "unknown")
 
@@ -268,12 +280,12 @@ def draw_shape(ax, shape):
     ax.axis('off')
 
 def build_crosscut_from_tuple(data_tuple):
-    label_values = list(data_tuple[:3])  # 3 labels, length, width, amount
+    label_values = list(data_tuple[:4])  # 3 labels, length, width, amount, board_name
     label_values[2] = str(label_values[2]) + "x"
 
-    length, width, amount = label_values
+    length, width, amount, board_name = label_values
 
-    crosscut_lenths = list(data_tuple[3:])
+    crosscut_lenths = list(data_tuple[4:])
 
     template = {
         "lines": [
@@ -288,6 +300,7 @@ def build_crosscut_from_tuple(data_tuple):
             (0.5, 0, 0, -10, 'center'),    # label below center
             (1.0, 0.5, 0, 0, 'left'),        # right side, offset right
             (0.5, 0.5, 0, 0, 'center'),     # middle center
+                (0.5, 1.5, 0, 0, 'center')   # label above center
         ],
     }
 
@@ -316,6 +329,7 @@ def build_crosscut_from_tuple(data_tuple):
         "lines": template["lines"],
         "label_positions": template["label_positions"],
         "label_values": label_values,
+        "board_name": board_name,
     }
 
 def plot_shapes_batch(shapes, batch_num, output_dir):

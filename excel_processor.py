@@ -137,6 +137,8 @@ def process_excel(file_path, template_path):
             if "NO EDGING" in edging_string_remark:
                 edging_string_remark = "NO EDGING"
 
+            ws.write(loop_row - 1, 8, loop_edging_category.upper(), style_border_all_thin)
+            ws.write(loop_row - 1, 9, loop_edging_name.upper(), style_border_all_thin)    
             ws.write(loop_row - 1, 10, edging_string_remark, style_border_all_thin)
 
             if edging_string not in unique_edging:
@@ -376,11 +378,11 @@ def find_cutouts(quote_nr):
     for cutlist_id in cutlist_ids:
         print("[INFO] Processing cutlist ID:", cutlist_id)
         cur.execute("""
-            SELECT ITEM_ID, LENGTE, WYDTE, QTY
+            SELECT ITEM_ID, LENGTE, WYDTE, QTY, BOARD_ID
             FROM CUT_LIST_DETAIL
             WHERE QUOTE_NR = ? AND CUTLIST_ID = ?
         """, (quote_nr, cutlist_id))
-        for item_id, lengte, wydte, qty in cur.fetchall():
+        for item_id, lengte, wydte, qty, board_id in cur.fetchall():
             cur.execute("""
                 SELECT CUTOUT1, CUTOUT2
                 FROM CUTOUTS
@@ -391,7 +393,17 @@ def find_cutouts(quote_nr):
                 print("[INFO] Found cutouts for item ID:", item_id)
                 print("[INFO] Data for piece with cutout: Length:", lengte, "Width:", wydte, "Qty:", qty, "Cutout Data:", cutout_row)
                 cutout1, cutout2 = cutout_row
-                results.append((item_id, cutlist_id, lengte, wydte, qty, cutout1, cutout2))
+                board_name = "Unknown"
+                cur.execute("""
+                    SELECT BOARD_NAME
+                    FROM BOARD_TYPES
+                    WHERE BOARD_ID = ?
+                """, (board_id,))
+                board_row = cur.fetchone()
+                print("DEBUG: Board ID:", board_id, "Board Row:", board_row, "Type:", type(board_row), cutout_row)
+                if board_row:
+                    board_name = board_row[0]
+                results.append((item_id, cutlist_id, lengte, wydte, qty, cutout1, cutout2, board_name))
 
     cur.close()
     con.close()
@@ -439,11 +451,11 @@ def find_crosscuts(quote_nr):
     for cutlist_id in cutlist_ids:
         print("[INFO] Processing cutlist ID:", cutlist_id)
         cur.execute("""
-            SELECT ITEM_ID, LENGTE, WYDTE, QTY
+            SELECT ITEM_ID, LENGTE, WYDTE, QTY, BOARD_ID
             FROM CUT_LIST_DETAIL
             WHERE QUOTE_NR = ? AND CUTLIST_ID = ?
         """, (quote_nr, cutlist_id))
-        for item_id, lengte, wydte, qty in cur.fetchall():
+        for item_id, lengte, wydte, qty, board_id in cur.fetchall():
             cur.execute("""
                 SELECT LENGTE
                 FROM CROSSCUTS
@@ -456,7 +468,17 @@ def find_crosscuts(quote_nr):
                     list_of_lengths.append(crosscut[0])
                 print("[INFO] Data for piece with crosscuts: Length:", lengte, "Width:", wydte, "Qty:", qty, "Crosscut Data:", list_of_lengths)
 
-                t = (lengte, wydte, qty)
+                board_name = "Unknown"
+                cur.execute("""
+                    SELECT BOARD_NAME
+                    FROM BOARD_TYPES
+                    WHERE BOARD_ID = ?
+                """, (board_id,))
+                board_row = cur.fetchone()
+                if board_row:
+                    board_name = board_row[0]
+
+                t = (lengte, wydte, qty, board_name)
                 extra = list_of_lengths
 
                 # unpack the list so its elements are added, not the list itself

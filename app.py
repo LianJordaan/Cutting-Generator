@@ -17,7 +17,7 @@ from shape_gen import *
 print("Libraries loaded.")
 
 APP_NAME = "Cutting Generator"
-APP_VERSION = "v4.1.1"
+APP_VERSION = "v4.2.0"
 AUTHOR = "Lian Jordaan"
 
 WINDOW_TITLE = f"{APP_NAME} {APP_VERSION} - {AUTHOR}"
@@ -96,9 +96,10 @@ if __name__ == "__main__":
 
                     shape_id = code[:2]
                     value1 = int(code[2:6])
-                    value2 = int(code[6:]) 
+                    value2 = int(code[6:])
+                    board_name = cutout[7]
 
-                    parsed_cutouts.append((shape_id, length, width, amount, value1, value2))
+                    parsed_cutouts.append((shape_id, length, width, amount, value1, value2, board_name))
                 
                 output_filename = f"SHAPES {job_name}.pdf"
                 output_path = os.path.join(os.path.dirname(file_path), output_filename)
