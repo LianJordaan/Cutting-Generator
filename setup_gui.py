@@ -25,7 +25,7 @@ def setup():
             agree_time = existing_config["agree_time"]
         else:
             if agree_terms:  # only set time if they agreed
-                agree_time = datetime.now().isoformat()
+                agree_time = datetime.datetime.now().isoformat()
 
         config_data = {
             "ip": ip,
