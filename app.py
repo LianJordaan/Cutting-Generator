@@ -83,11 +83,9 @@ if __name__ == "__main__":
             cutouts = find_cutouts(qoute_num)
             crosscuts = find_crosscuts(qoute_num)
             parsed_cutouts = []
+
             if cutouts:
                 print("✅ Cutouts found:")
-                if crosscuts:
-                    print("✅ Crosscuts found:")
-
                 for cutout in cutouts:
                     length = cutout[2]
                     width = cutout[3]
@@ -100,18 +98,22 @@ if __name__ == "__main__":
                     board_name = cutout[7]
 
                     parsed_cutouts.append((shape_id, length, width, amount, value1, value2, board_name))
-                
-                output_filename = f"SHAPES {job_name}.pdf"
-                output_path = os.path.join(os.path.dirname(file_path), output_filename)
-
-
             else:
                 print("❌ No cutouts found for this customer and job.")
 
-            if not crosscuts:
+            if crosscuts:
+                print("✅ Crosscuts found:")
+            else:
                 print("❌ No crosscuts found for this customer and job.")
 
-            shapes_to_pdf(parsed_cutouts, crosscuts, output_pdf=output_path)
+            # ✅ Only create PDF if at least one of them exists
+            if parsed_cutouts or crosscuts:
+                output_filename = f"SHAPES {job_name}.pdf"
+                output_path = os.path.join(os.path.dirname(file_path), output_filename)
+                shapes_to_pdf(parsed_cutouts, crosscuts, output_pdf=output_path)
+            else:
+                print("⚠️ Nothing to export to PDF.")
+
         except Exception as e:
             print(f"❌ Error while searching for cutouts: {e}")
             print("Please ensure the database configuration is correct in the setup.")
