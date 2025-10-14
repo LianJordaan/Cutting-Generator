@@ -17,7 +17,7 @@ from shape_gen import *
 print("Libraries loaded.")
 
 APP_NAME = "Cutting Generator"
-APP_VERSION = "v4.4.0"
+APP_VERSION = "v4.4.1"
 AUTHOR = "Lian Jordaan"
 
 WINDOW_TITLE = f"{APP_NAME} {APP_VERSION} - {AUTHOR}"
@@ -38,99 +38,104 @@ else:
 
 
 if __name__ == "__main__":
+    try:
 
-    config = get_setup_info()
-    if not config:
-        setup()
         config = get_setup_info()
-        print("Setup complete. Please re-run the program.")
-        print("Press enter to exit...")
-        input()
-        sys.exit(0)
-    
-    if not config.get("agree_terms"):
-        print("You must agree to the terms and conditions before using this software.")
-        print("Please re-run the setup and agree to the terms.")
-        print("Or type YES to automatically agree to the terms and conditions and continue...")
-
-        while True:
-            choice = input().strip().upper()
-            if choice == "YES" or choice == "Y":
-                config["agree_terms"] = True
-                save_config(config)
-                print("Thank you. Your agreement has been saved. Please re-run the program.")
-                print("Press enter to exit...")
-                input()
-                break
-            else:
-                print("Please type YES to agree to the terms and conditions, or close the program.")
-        sys.exit(0)
-
-
-
-    if len(sys.argv) > 1:
-        file_path = sys.argv[1]
-        template_path = os.path.join(base_path, "template.xls")
-        
-        qoute_num = find_quote_num(file_path)
-        job_name = get_job_name(file_path)
-
-        boardNumbersToRecheck = process_excel(file_path, template_path)
-
-        print(f"Processed file: {file_path}")
-        print("Attempting to search for cutouts...")
-        try:
-            cutouts = find_cutouts(qoute_num)
-            crosscuts = find_crosscuts(qoute_num)
-            parsed_cutouts = []
-
-            if cutouts:
-                print("✅ Cutouts found:")
-                for cutout in cutouts:
-                    length = cutout[2]
-                    width = cutout[3]
-                    amount = cutout[4]
-                    code = cutout[5]
-
-                    shape_id = code[:2]
-                    value1 = int(code[2:6])
-                    value2 = int(code[6:])
-                    board_name = cutout[7]
-
-                    parsed_cutouts.append((shape_id, length, width, amount, value1, value2, board_name))
-            else:
-                print("❌ No cutouts found for this customer and job.")
-
-            if crosscuts:
-                print("✅ Crosscuts found:")
-            else:
-                print("❌ No crosscuts found for this customer and job.")
-
-            # ✅ Only create PDF if at least one of them exists
-            if parsed_cutouts or crosscuts:
-                output_filename = f"SHAPES {job_name}.pdf"
-                output_path = os.path.join(os.path.dirname(file_path), output_filename)
-                shapes_to_pdf(parsed_cutouts, crosscuts, output_pdf=output_path)
-            else:
-                print("⚠️ Nothing to export to PDF.")
-
-        except Exception as e:
-            print(f"❌ Error while searching for cutouts: {e}")
-            print("Please ensure the database configuration is correct in the setup.")
+        if not config:
+            setup()
+            config = get_setup_info()
+            print("Setup complete. Please re-run the program.")
+            print("Press enter to exit...")
             input()
+            sys.exit(0)
         
-        # input("Done. You may now close this window...")
-        refresh_desktop()
+        if not config.get("agree_terms"):
+            print("You must agree to the terms and conditions before using this software.")
+            print("Please re-run the setup and agree to the terms.")
+            print("Or type YES to automatically agree to the terms and conditions and continue...")
 
-        if boardNumbersToRecheck:
-            print("\nThe following boards need to be rechecked due to invalid board types or names:\n")
-            for page, category, name in boardNumbersToRecheck:
-                print(f" - Page {page}: {category} → {name}")
-            print("\nPlease check these boards in the Cutting Manager software to see if they need to be processed manually.")
-            input("Press Enter to continue...")
+            while True:
+                choice = input().strip().upper()
+                if choice == "YES" or choice == "Y":
+                    config["agree_terms"] = True
+                    save_config(config)
+                    print("Thank you. Your agreement has been saved. Please re-run the program.")
+                    print("Press enter to exit...")
+                    input()
+                    break
+                else:
+                    print("Please type YES to agree to the terms and conditions, or close the program.")
+            sys.exit(0)
 
+
+
+        if len(sys.argv) > 1:
+            file_path = sys.argv[1]
+            template_path = os.path.join(base_path, "template.xls")
+            
+            qoute_num = find_quote_num(file_path)
+            job_name = get_job_name(file_path)
+
+            boardNumbersToRecheck = process_excel(file_path, template_path)
+
+            print(f"Processed file: {file_path}")
+            print("Attempting to search for cutouts...")
+            try:
+                cutouts = find_cutouts(qoute_num)
+                crosscuts = find_crosscuts(qoute_num)
+                parsed_cutouts = []
+
+                if cutouts:
+                    print("✅ Cutouts found:")
+                    for cutout in cutouts:
+                        length = cutout[2]
+                        width = cutout[3]
+                        amount = cutout[4]
+                        code = cutout[5]
+
+                        shape_id = code[:2]
+                        value1 = int(code[2:6])
+                        value2 = int(code[6:])
+                        board_name = cutout[7]
+
+                        parsed_cutouts.append((shape_id, length, width, amount, value1, value2, board_name))
+                else:
+                    print("❌ No cutouts found for this customer and job.")
+
+                if crosscuts:
+                    print("✅ Crosscuts found:")
+                else:
+                    print("❌ No crosscuts found for this customer and job.")
+
+                # ✅ Only create PDF if at least one of them exists
+                if parsed_cutouts or crosscuts:
+                    output_filename = f"SHAPES {job_name}.pdf"
+                    output_path = os.path.join(os.path.dirname(file_path), output_filename)
+                    shapes_to_pdf(parsed_cutouts, crosscuts, output_pdf=output_path)
+                else:
+                    print("⚠️ Nothing to export to PDF.")
+
+            except Exception as e:
+                print(f"❌ Error while searching for cutouts: {e}")
+                print("Please ensure the database configuration is correct in the setup.")
+                input()
+            
+            # input("Done. You may now close this window...")
+            refresh_desktop()
+
+            if boardNumbersToRecheck:
+                print("\nThe following boards need to be rechecked due to invalid board types or names:\n")
+                for page, category, name in boardNumbersToRecheck:
+                    print(f" - Page {page}: {category} → {name}")
+                print("\nPlease check these boards in the Cutting Manager software to see if they need to be processed manually.")
+                input("Press Enter to continue...")
+
+            input("Press Enter to exit...")
+
+        else:
+            setup()
+            print("No file provided. Please drag an Excel file onto this program.")
+
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
         input("Press Enter to exit...")
-
-    else:
-        setup()
-        print("No file provided. Please drag an Excel file onto this program.")
