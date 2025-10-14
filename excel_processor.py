@@ -7,6 +7,7 @@ from openpyxl import load_workbook
 import warnings
 from config_utils import *
 from tqdm import tqdm
+import re
 
 valid_bord_types = {"plain boards", "grain boards"}
 invalid_bord_names = {"own peen", "own grain", "top 600", "top 900"}
@@ -21,6 +22,10 @@ def get_customer_name(file_path):
 def get_job_name(file_path):
     return get_cell_value(file_path, 2, 2)
 
+def is_safe_filename(name):
+    """Return True if filename does NOT contain invalid Windows characters, else False."""
+    return not bool(re.search(r'[\\/:"*?<>|]+', name))
+
 def process_excel(file_path, template_path):
     print(f"[INFO] Starting processing of file: {file_path}")
 
@@ -29,6 +34,13 @@ def process_excel(file_path, template_path):
     customer = get_customer_name(file_path)
     job_name = get_job_name(file_path)
     print(f"[INFO] Customer: {customer}, Job Name: {job_name}")
+
+    if not is_safe_filename(job_name) or not is_safe_filename(customer):
+        raise ValueError(
+            f"[ERROR] Invalid characters detected in job name or customer name.\n"
+            f"[ERROR] Invalid name(s): Job='{job_name}', Customer='{customer}'\n"
+            "Please remove any of the following characters: \\ / : * ? \" < > |"
+        )
 
     output_filename = f"{job_name}.xls"
     output_path = os.path.join(os.path.dirname(file_path), output_filename)
