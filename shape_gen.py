@@ -69,7 +69,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),     # middle center
                 (value_to_relative(0, length, (length)-(value1/2)), 1.0, 0, 5, 'center'),     # near top right
                 (0.0, value_to_relative(0, width, value2/2), -5, 0, 'right'),      # near bottom left
-                (0.5, 1.5, 0, 0, 'center')   # label above center
+                (0.5, 1.0, 0, 20, 'center')   # label above center
             ],
         }
 
@@ -89,7 +89,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),     # middle center
                 (value_to_relative(0, length, (length)-(value1/2)), 1.0, 0, 5, 'center'),     # near top right
                 (0.0, value_to_relative(0, width, value2/2), -5, 0, 'right'),      # near bottom left
-                (0.5, 1.5, 0, 0, 'center')   # label above center
+                (0.5, 1.0, 0, 20, 'center')   # label above center
             ],
         }
 
@@ -108,7 +108,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),  # center of the shape
                 (value_to_relative(0, length, value1 / 2), 1.0, 0, 5, 'center'),  # near top left
                 (1.0, value_to_relative(0, width, value2/2), 0, 0, 'left'),      # near bottom right
-                (0.5, 1.5, 0, 0, 'center')   # label above center
+                (0.5, 1.0, 0, 20, 'center')   # label above center
             ],
         }
 
@@ -128,7 +128,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),  # center of the shape
                 (value_to_relative(0, length, value1 / 2), 1.0, 0, 5, 'center'),  # near top left
                 (1.0, value_to_relative(0, width, value2/2), 5, 0, 'left'),      # near bottom right
-                (0.5, 1.5, 0, 0, 'center')   # label above center
+                (0.5, 1.0, 0, 20, 'center')   # label above center
             ],
         }
 
@@ -147,7 +147,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),     # middle center
                 (value_to_relative(0, length, (length)-(value1/2)), 0, 0, -10, 'center'),     # near top right
                 (0.0, value_to_relative(0, width, (width) - (value2/2)), -5, 0, 'right'),      # near bottom left
-                (0.5, 1.5, 0, 0, 'center')   # label above center
+                (0.5, 1.0, 0, 20, 'center')   # label above center
             ],
         }
 
@@ -167,7 +167,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),     # middle center
                 (value_to_relative(0, length, (length)-(value1/2)), 0, 0, -10, 'center'),     # near bottom right
                 (0.0, value_to_relative(0, width, (width) - (value2/2)), -5, 0, 'right'),      # near top left
-                (0.5, 1.5, 0, 0, 'center')   # label above center
+                (0.5, 1.0, 0, 20, 'center')   # label above center
             ],
         }
 
@@ -187,7 +187,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),     # middle center
                 (value_to_relative(0, length, value1 / 2), 0, 0, -10, 'center'),  # near top left
                 (1.0, value_to_relative(0, width, (width) - (value2/2)), 0, 0, 'left'),      # near bottom right
-                (0.5, 1.5, 0, 0, 'center')   # label above center
+                (0.5, 1.0, 0, 20, 'center')   # label above center
             ],
         }   
 
@@ -207,7 +207,7 @@ def build_shape_from_tuple(data_tuple):
                 (0.5, 0.5, 0, 0, 'center'),     # middle center
                 (value_to_relative(0, length, value1 / 2), 0, 0, -10, 'center'),  # near top left
                 (1.0, value_to_relative(0, width, (width) - (value2/2)), 0, 0, 'left'),      # near bottom right
-                (0.5, 1.5, 0, 0, 'center')   # label above center
+                (0.5, 1.0, 0, 20, 'center')   # label above center
             ],
         }
 
@@ -300,7 +300,7 @@ def build_crosscut_from_tuple(data_tuple):
             (0.5, 0, 0, -10, 'center'),    # label below center
             (1.0, 0.5, 0, 0, 'left'),        # right side, offset right
             (0.5, 0.5, 0, 0, 'center'),     # middle center
-                (0.5, 1.5, 0, 0, 'center')   # label above center
+                (0.5, 1.0, 0, 20, 'center')   # label above center
         ],
     }
 
@@ -373,6 +373,7 @@ def shapes_to_pdf(shape_tuples, crosscuts, output_pdf="cutout_shapes.pdf"):
     for t in tqdm(shape_tuples, desc="Generating shapes"):
         shape_objects.append(build_shape_from_tuple(t))
     for t in tqdm(crosscuts, desc="Generating more shapes."):
+        print("Adding crosscuts - " + str(t))
         shape_objects.append(build_crosscut_from_tuple(t))
 
     # Temporary directory to save intermediate images

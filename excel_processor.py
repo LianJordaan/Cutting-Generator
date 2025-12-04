@@ -501,3 +501,63 @@ def find_crosscuts(quote_nr):
     cur.close()
     con.close()
     return results
+
+def containsSpecialCrosscuts(quote_nr):
+    config = load_config()
+    ip = config.get("ip", None)
+    port = config.get("port", "3050")
+    username = config.get("username", None)
+    password = config.get("password", None)
+    filepath = config.get("filepath", "C:/ZAWare/DB/CutMan/CUTMAN.FDB")
+    charset = config.get("charset", "UTF8")
+
+    if not ip or not username or not password:
+        print("[ERROR] Database configuration is incomplete. Please run the setup.")
+        return []
+
+    con = fdb.connect(
+        dsn=f'{ip}/{port}:{filepath}',
+        user=f'{username}',
+        password=f'{password}',
+        charset=f'{charset}'
+    )
+    cur = con.cursor()
+
+    print("[INFO] Searcing for cutlist ids for quote number:", quote_nr)
+    # Get cutlist_ids
+    cur.execute("""
+        SELECT CUTLIST_ID
+        FROM CUTLIST
+        WHERE QUOTE_NR = ?
+    """, (quote_nr,))
+    cutlist_ids = [row[0] for row in cur.fetchall()]
+    if not cutlist_ids:
+        cur.close()
+        con.close()
+        return []
+
+    print("[INFO] Found cutlist IDs:", cutlist_ids)
+    print("[INFO] Fetching for special crosscuts...")
+
+    results = []
+    for cutlist_id in cutlist_ids:
+        print("[INFO] Processing cutlist ID:", cutlist_id)
+        cur.execute("""
+            SELECT ITEM_ID, LENGTE, WYDTE, QTY, BOARD_ID
+            FROM CUT_LIST_DETAIL
+            WHERE QUOTE_NR = ? AND CUTLIST_ID = ?
+        """, (quote_nr, cutlist_id))
+        for item_id, lengte, wydte, qty, board_id in cur.fetchall():
+            cur.execute("""
+                SELECT SPLIT, HOLES_L, HOLES_S, LSWING
+                FROM CROSSCUTS
+                WHERE QUOTE_NR = ? AND CUTLIST_ID = ? AND ITEM_ID = ?
+            """, (quote_nr, cutlist_id, item_id))
+            crosscut_rows = cur.fetchall()
+            if crosscut_rows:
+                print("[INFO] Found special crosscuts.. Processing...")
+                return True
+
+    cur.close()
+    con.close()
+    return False

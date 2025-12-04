@@ -17,7 +17,7 @@ from shape_gen import *
 print("Libraries loaded.")
 
 APP_NAME = "Cutting Generator"
-APP_VERSION = "v4.5.0"
+APP_VERSION = "v4.5.2"
 AUTHOR = "Lian Jordaan"
 
 WINDOW_TITLE = f"{APP_NAME} {APP_VERSION} - {AUTHOR}"
@@ -83,6 +83,7 @@ if __name__ == "__main__":
             try:
                 cutouts = find_cutouts(qoute_num)
                 crosscuts = find_crosscuts(qoute_num)
+                special_crosscuts_exist = containsSpecialCrosscuts(qoute_num)
                 parsed_cutouts = []
 
                 if cutouts:
@@ -115,6 +116,7 @@ if __name__ == "__main__":
                 else:
                     print("⚠️ Nothing to export to PDF.")
 
+
             except Exception as e:
                 print(f"❌ Error while searching for cutouts: {e}")
                 print("Please ensure the database configuration is correct in the setup.")
@@ -130,7 +132,10 @@ if __name__ == "__main__":
                 print("\nPlease check these boards in the Cutting Manager software to see if they need to be processed manually.")
                 input("Press Enter to continue...")
 
-            input("Press Enter to exit...")
+
+            if special_crosscuts_exist:
+                print("\033[93;41m⚠️ WARNING: Special crosscuts detected! Please review them after printing.\033[0m")
+                input("Press Enter to continue...")
 
         else:
             setup()
