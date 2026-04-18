@@ -2,7 +2,7 @@ import fdb
 
 def find_jobs_by_partial_name(partial_name):
     con = fdb.connect(
-        dsn='10.0.0.108:C:/ZAWare/DB/CutMan/CUTMAN.FDB',
+        dsn='10.0.0.222:C:/ZAWare/DB/CutMan/CUTMAN.FDB',
         user='SYSDBA',
         password='masterkey',
         charset='UTF8'
@@ -53,7 +53,7 @@ def find_jobs_by_partial_name(partial_name):
 
 
 # Example usage:
-matches = find_jobs_by_partial_name("BRUSS")
+matches = find_jobs_by_partial_name("T TASHA")
 
 for m in matches:
     print(m)

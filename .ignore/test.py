@@ -55,5 +55,5 @@ def find_cutouts(quote_nr_input):
     return results
 
 # Example usage:
-cutouts = find_cutouts("27888")
-# print(cutouts)
+cutouts = find_cutouts("27932")
+# print(cutouts)        27888

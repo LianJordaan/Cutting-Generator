@@ -371,6 +371,7 @@ def shapes_to_pdf(shape_tuples, crosscuts, output_pdf="cutout_shapes.pdf"):
     print("🚧 Building shape data...")
     shape_objects = []
     for t in tqdm(shape_tuples, desc="Generating shapes"):
+        print("Adding shape - " + str(t))
         shape_objects.append(build_shape_from_tuple(t))
     for t in tqdm(crosscuts, desc="Generating more shapes."):
         print("Adding crosscuts - " + str(t))
