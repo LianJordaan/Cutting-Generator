@@ -75,7 +75,7 @@ if __name__ == "__main__":
             erik_template_path = os.path.join(base_path, "template.xlsx")
             # Check for Erik's cutlist and use alternate processing if detected
             try:
-                if is_erik_cutlist(file_path):
+                if is_erik_cutlist(file_path) and is_developer_mode_enabled(config):
                     print("Erik cutlist detected — running Erik-specific processing...")
                     try:
                         process_erik_cutlist(file_path, erik_template_path)
