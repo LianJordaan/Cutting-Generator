@@ -4,6 +4,7 @@ import xlwt
 import os
 from xlutils.copy import copy as xl_copy
 from openpyxl import load_workbook
+from openpyxl.cell.cell import MergedCell
 import warnings
 from config_utils import *
 from tqdm import tqdm
@@ -25,6 +26,15 @@ def get_job_name(file_path):
 def is_safe_filename(name):
     """Return True if filename does NOT contain invalid Windows characters, else False."""
     return not bool(re.search(r'[\\/:"*?<>|]+', name))
+
+def copy_template_to_input_folder(file_path, template_path):
+    """Copy template file into the input file's folder and return the new path."""
+    input_folder = os.path.dirname(file_path)
+    template_filename = os.path.basename(template_path)
+    output_path = os.path.join(input_folder, template_filename)
+
+    shutil.copyfile(template_path, output_path)
+    return output_path
 
 def process_excel(file_path, template_path):
     print(f"[INFO] Starting processing of file: {file_path}")
@@ -561,3 +571,267 @@ def containsSpecialCrosscuts(quote_nr):
     cur.close()
     con.close()
     return False
+
+def normalize_board_types(board_color):
+    categoties = ["Plain Boards", "Grain Boards", "Plywood", "Plain Hardboard"]
+    # give the user whatever the color is, and then ask the user to enter a number, basically pick what category that one belongs to.
+    print(f"Board color: {board_color}")
+    print("Please enter the number corresponding to the category this board belongs to:")
+    for i, category in enumerate(categoties):
+        print(f"{i}. {category}")
+    while True:
+        choice = input("Enter the number of the category: ")
+        if choice.isdigit() and 0 <= int(choice) < len(categoties):
+            return categoties[int(choice)]
+        else:
+            print("Invalid choice. Please enter a valid number.")
+
+def normalize_edging_types(edging):
+    # give the user whatever the edging is, and then ask the user to enter a number, basically pick what category that one belongs to.
+    categories = ["0.4mm PVC", "1mm PVC", "2mm PVC", "3mm PVC"]
+    if edging == "":
+        return categories[0]
+    print(f"Edging: {edging}")
+    print("Please enter the number corresponding to the category this edging belongs to:")
+    for i, category in enumerate(categories):
+        print(f"{i}. {category}")
+    while True:
+        choice = input("Enter the number of the category: ")
+        if choice.isdigit() and 0 <= int(choice) < len(categories):
+            return categories[int(choice)]
+        else:
+            print("Invalid choice. Please enter a valid number.")
+
+def normalize_extra_data(extra_data):
+    text = "" if extra_data is None else str(extra_data).replace("\xa0", " ").strip()
+
+    if text == "":
+        return 0, ""
+
+    if "gate" not in text.lower():
+        default_text = text.upper()
+        print(f"Default extra text: {default_text}")
+        user_text = input("Enter replacement extra text (press Enter to keep default): ")
+        replacement_text = user_text.upper() if user_text else default_text
+        return 0, replacement_text
+
+    # Example input: "Boor 2 x gate: 100mm van hoeke af"
+    # Extract gate count (the number before "gate").
+    gate_count_match = re.search(r"(\d+)\s*x?\s*gate", text, re.IGNORECASE)
+    gate_count = int(gate_count_match.group(1)) if gate_count_match else 0
+
+    # Keep only the text after ":" as the default extra description.
+    text_after_colon = text.split(":", 1)[1].strip() if ":" in text else ""
+    default_text = text_after_colon.upper()
+
+    print(f"Detected gate count: {gate_count}")
+    print(f"Default extra text: {default_text}")
+    user_text = input("Enter replacement extra text (press Enter to keep default): ")
+
+    replacement_text = user_text.upper() if user_text else default_text
+    return gate_count, replacement_text
+
+
+def process_erik_cutlist(file_path, template_path):
+    def to_int_value(value):
+        """Convert numeric-looking values to rounded int; return None when not numeric."""
+        if isinstance(value, (int, float)):
+            return int(round(value))
+        if isinstance(value, str):
+            text = value.strip()
+            if text == "":
+                return None
+            try:
+                return int(round(float(text.replace(",", "."))))
+            except ValueError:
+                return None
+        return None
+
+    def set_cell_value_safe_for_merge(ws, row, column, value):
+        """Write to a cell, redirecting to merged-range anchor when needed."""
+        cell = ws.cell(row=row, column=column)
+        if not isinstance(cell, MergedCell):
+            cell.value = value
+            return
+
+        for merged_range in ws.merged_cells.ranges:
+            if (
+                merged_range.min_row <= row <= merged_range.max_row
+                and merged_range.min_col <= column <= merged_range.max_col
+            ):
+                ws.cell(row=merged_range.min_row, column=merged_range.min_col, value=value)
+                return
+
+        # Fallback in case no matching range is found
+        ws.cell(row=row, column=column, value=value)
+
+    newTemplatePath = copy_template_to_input_folder(file_path, template_path)
+    # rename the copied template to "CUTTING - {job_name}.xlsx"
+    job_name = os.path.splitext(os.path.basename(file_path))[0]
+    new_template_name = f"CUTTING - {job_name}.xlsx"
+    new_template_path = os.path.join(os.path.dirname(newTemplatePath), new_template_name)
+    os.rename(newTemplatePath, new_template_path)
+    # open the input file in read only mode. in the B column, go down untill you find a cell that contains "die einde" ignore case also contain, not exact mach. then save the index. i need to know how far down i will have to search for data.
+    book = xlrd.open_workbook(file_path)
+    sheet = book.sheet_by_index(0)
+    end_row_index = None
+    for row_idx in range(sheet.nrows):
+        cell_value = sheet.cell_value(row_idx, 1)  # Column B is index 1
+        if isinstance(cell_value, str) and "die einde" in cell_value.lower():
+            end_row_index = row_idx
+            break
+    if end_row_index is None:
+        print("[ERROR] Could not find 'die einde' in column B. Cannot process Erik cutlist.")
+        return
+    print(f"[INFO] Found 'die einde' at row index: {end_row_index}")
+
+    # loop in the A column from the first row all the way down to the end row - 1.
+    current_board_color = None
+    current_board_category = None
+    current_edging_color = None
+    current_edging_category = None
+
+    known_board_category_mappings = {}
+    known_edging_category_mappings = {}
+
+    known_extra_data_mappings = {}
+
+    all_boards_data = {}
+
+    
+    for row_idx in range(end_row_index):
+        cell_value = sheet.cell_value(row_idx, 0)
+        if "board type" in cell_value.lower():
+            current_board_color = sheet.cell_value(row_idx, 1)
+            if current_board_color in known_board_category_mappings:
+                current_board_category = known_board_category_mappings[current_board_color]
+                print(f"[INFO] Board category for color '{current_board_color}' found in cache: {current_board_category}")
+            else:
+                current_board_category = normalize_board_types(current_board_color)
+                known_board_category_mappings[current_board_color] = current_board_category
+            print(f"[INFO] Board category changed: {current_board_category} (Color: {current_board_color})")
+    
+    
+    for row_idx in range(end_row_index):
+        cell_value = sheet.cell_value(row_idx, 0)
+        if "edging" in cell_value.lower():
+            current_edging_color = sheet.cell_value(row_idx, 1)
+            if current_edging_color in known_edging_category_mappings:
+                current_edging_category = known_edging_category_mappings[current_edging_color]
+                print(f"[INFO] Edging category for color '{current_edging_color}' found in cache: {current_edging_category}")
+            else:
+                current_edging_category = normalize_edging_types(current_edging_color)
+                known_edging_category_mappings[current_edging_color] = current_edging_category
+            print(f"[INFO] Edging category changed: {current_edging_category} (Color: {current_edging_color})")
+
+    for row_idx in range(end_row_index):
+        cell_value = sheet.cell_value(row_idx, 0)
+        if "board type" in cell_value.lower():
+            current_board_color = sheet.cell_value(row_idx, 1)
+            if current_board_color in known_board_category_mappings:
+                current_board_category = known_board_category_mappings[current_board_color]
+                print(f"[INFO] Board category for color '{current_board_color}' found in cache: {current_board_category}")
+            else:
+                current_board_category = normalize_board_types(current_board_color)
+                known_board_category_mappings[current_board_color] = current_board_category
+            print(f"[INFO] Board category changed: {current_board_category} (Color: {current_board_color})")
+        if "edging" in cell_value.lower():
+            current_edging_color = sheet.cell_value(row_idx, 1)
+            if current_edging_color in known_edging_category_mappings:
+                current_edging_category = known_edging_category_mappings[current_edging_color]
+                print(f"[INFO] Edging category for color '{current_edging_color}' found in cache: {current_edging_category}")
+            else:
+                current_edging_category = normalize_edging_types(current_edging_color)
+                known_edging_category_mappings[current_edging_color] = current_edging_category
+            print(f"[INFO] Edging category changed: {current_edging_category} (Color: {current_edging_color})")
+        length = to_int_value(sheet.cell_value(row_idx, 1))
+        width = to_int_value(sheet.cell_value(row_idx, 2))
+        quantity = to_int_value(sheet.cell_value(row_idx, 3))
+        edge_length = to_int_value(sheet.cell_value(row_idx, 4))
+        edge_width = to_int_value(sheet.cell_value(row_idx, 5))
+        extra = sheet.cell_value(row_idx, 6)
+
+        # check if length and width are both numbers
+        if length is not None and width is not None:
+            print(f"[INFO] Processing piece: Length={length}, Width={width}, Quantity={quantity}, Edge Length={edge_length}, Edge Width={edge_width}, Extra={extra}")
+            # instead of writing this data to the template file, we want to store it inside a variable, and it should be categorized by per board_color.
+
+            holes = 0
+
+            if current_board_color not in all_boards_data:
+                all_boards_data[current_board_color] = []
+            if extra is not None and str(extra).replace("\xa0", " ").strip() != "":
+                if extra in known_extra_data_mappings:
+                    holes, extra = known_extra_data_mappings[extra]
+                else:
+                    known_extra_data_mappings[extra] = normalize_extra_data(extra)
+                    holes, extra = known_extra_data_mappings[extra]
+            else:
+                extra = ""
+
+            all_boards_data[current_board_color].append({
+                "length": length,
+                "width": width,
+                "quantity": quantity,
+                "edge_length": edge_length,
+                "edge_width": edge_width,
+                "holes": holes,
+                "extra": extra,
+                "edge_category": current_edging_category,
+                "board_category": current_board_category,
+                "edge_color": current_edging_color,
+                "board_color": current_board_color
+            })
+    print("[DEBUG]" + str(all_boards_data))
+
+    current_sheet_index = 0
+
+    # open the new xlsx template file for writing
+    wb = load_workbook(new_template_path)
+    active_sheet = None
+
+    # loop thru the indexes of all_boards_data
+    for board_color, pieces in all_boards_data.items():
+        print(f"[INFO] Writing data for board color: {board_color} with {len(pieces)} pieces. Onto sheet index: {current_sheet_index}")
+        if current_sheet_index >= len(wb.worksheets):
+            print(f"[WARNING] Not enough sheets in template for board color '{board_color}'. Skipping remaining data.")
+            break
+
+        active_sheet = wb.worksheets[current_sheet_index]
+        
+        set_cell_value_safe_for_merge(active_sheet, 4, 3, pieces[0]['board_category'])
+        # the cell below that should be the edging category
+        set_cell_value_safe_for_merge(active_sheet, 5, 3, pieces[0]['edge_category'])
+
+        set_cell_value_safe_for_merge(active_sheet, 4, 5, pieces[0]['board_color'])
+        set_cell_value_safe_for_merge(active_sheet, 5, 5, pieces[0]['edge_color'])
+
+        row_index = 7
+
+        # for each piece, write the data to the template file, but also include the board category and edging category in the print sheet.
+        for piece in pieces:
+            print(f"[INFO] Writing piece: Length={piece['length']}, Width={piece['width']}, Quantity={piece['quantity']}, Edge Length={piece['edge_length']}, Edge Width={piece['edge_width']}, Extra={piece['extra']}, Board Category={piece['board_category']}, Edging Category={piece['edge_category']}")
+
+            print(piece['edge_color'])
+            if piece['edge_color'] == "":
+                piece['edge_color'] = "** NO EDGING"
+
+            excel_row = row_index + 1
+            active_sheet.cell(row=excel_row, column=2, value=piece['length'])
+            active_sheet.cell(row=excel_row, column=3, value=piece['width'])
+            active_sheet.cell(row=excel_row, column=4, value=piece['quantity'])
+            active_sheet.cell(row=excel_row, column=5, value=piece['edge_length'])
+            active_sheet.cell(row=excel_row, column=6, value=piece['edge_width'])
+
+            active_sheet.cell(row=excel_row, column=7, value=piece['holes'])
+
+            active_sheet.cell(row=excel_row, column=9, value=piece['edge_category'])
+            active_sheet.cell(row=excel_row, column=10, value=piece['edge_color'])
+            active_sheet.cell(row=excel_row, column=11, value=piece['extra'])
+
+            row_index += 1
+
+        current_sheet_index += 1
+    
+    # make it save..?
+    wb.save(new_template_path)

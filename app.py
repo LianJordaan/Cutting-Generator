@@ -72,16 +72,21 @@ if __name__ == "__main__":
         if len(sys.argv) > 1:
             file_path = sys.argv[1]
             template_path = os.path.join(base_path, "template.xls")
+            erik_template_path = os.path.join(base_path, "template.xlsx")
             # Check for Erik's cutlist and use alternate processing if detected
             try:
                 if is_erik_cutlist(file_path):
                     print("Erik cutlist detected — running Erik-specific processing...")
-                    # TODO: implement Erik-specific processing here
-                    input("Press Enter to exit...")
-                    refresh_desktop()
-                    sys.exit(0)
+                    try:
+                        process_erik_cutlist(file_path, erik_template_path)
+                        refresh_desktop()
+                        sys.exit(0)
+                    except Exception as e:
+                        print(f"❌ Error while processing Erik cutlist: {e}")
+                        sys.exit(0)
             except Exception as e:
-                print(f"Warning: failed to check Erik cutlist: {e}")
+                print(f"ERROR: failed to check Erik cutlist: {e}")
+                sys.exit(0)
 
             qoute_num = find_quote_num(file_path)
             job_name = get_job_name(file_path)

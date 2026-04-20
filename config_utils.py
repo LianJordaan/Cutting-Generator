@@ -5,6 +5,9 @@ from cryptography.fernet import Fernet
 CONFIG_PATH = os.path.expanduser("~/.myapp_config.enc")
 KEY_PATH = os.path.expanduser("~/.myapp_key.key")
 
+# Hardcode the developer password here.
+DEVELOPER_PASSWORD = ""
+
 def generate_key():
     """Generate and save a key for encryption"""
     key = Fernet.generate_key()
@@ -42,3 +45,16 @@ def load_config() -> dict:
     with open(CONFIG_PATH, "rb") as f:
         enc = f.read()
     return decrypt_config(enc, key)
+
+def is_developer_mode_enabled(config: dict = None) -> bool:
+    if config is None:
+        config = load_config()
+
+    if not config:
+        return False
+
+    if not DEVELOPER_PASSWORD:
+        return False
+
+    entered_password = config.get("developer_password", "")
+    return entered_password == DEVELOPER_PASSWORD
