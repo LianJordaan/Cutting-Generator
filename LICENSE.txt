@@ -33,16 +33,17 @@ agreement with Licensor.
     regardless of the reason for termination.
 3.2 Upon termination, Licensee must immediately cease all use, remove
     the Software from all systems, and destroy any copies, unless a
-    separate paid license agreement is obtained from Licensor.
+    separate handwritten license agreement is obtained from Licensor.
 3.3 Licensor may terminate this Agreement immediately if Licensee
     breaches any terms of this Agreement.
 3.4 Any use of the Software without a valid license, including use
     after termination of this Agreement, shall be considered
-    unlicensed use. In such cases, Licensee agrees to be liable for
-    retroactive license fees at the prevailing commercial rate,
-    currently set at USD $1 (one US dollars) per computer per day of
-    unauthorized use, in addition to any other rights and remedies
-    available to Licensor under law.
+    unlawful and unauthorized use. If Licensee wishes to continue
+    using the Software after termination of this Agreement, Licensee
+    must first obtain a handwritten contract signed by Licensor. Any
+    such contract shall be valid for no longer than one (1) year and
+    must be renewed in writing every year that Licensor is not employed
+    by Discount Boards Upington.
 
 4. Restrictions
 ---------------
@@ -55,9 +56,10 @@ c) Distribute, sublicense, lease, rent, or otherwise transfer the
 d) Reverse engineer, decompile, or disassemble the Software, except
    to the extent permitted by applicable law;
 e) Continue using the Software after termination of this Agreement,
-   unless a separate paid license agreement is obtained. Any such use
-   shall be deemed unlicensed and subject to the retroactive license
-   fee specified in Section 3.4.
+    unless a separate handwritten contract signed by Licensor is
+    obtained and kept current through annual renewal while Licensor is
+    not employed by Discount Boards Upington. Any such use without that
+    contract shall be deemed unlawful and unauthorized.
 
 5. Ownership
 ------------
