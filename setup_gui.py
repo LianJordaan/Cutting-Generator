@@ -12,6 +12,7 @@ def setup():
         port = port_entry.get().strip()
         username = username_entry.get().strip()
         password = password_entry.get().strip()
+        developer_password = developer_password_entry.get().strip()
         filepath = filepath_entry.get().strip() or "C:/ZAWare/DB/CutMan/CUTMAN.FDB"
         charset = charset_entry.get().strip() or "UTF8"
         agree_terms = agree_terms_entry.get()
@@ -32,6 +33,7 @@ def setup():
             "port": port,
             "username": username,
             "password": password,
+            "developer_password": developer_password,
             "filepath": filepath,
             "charset": charset,
             "agree_terms": agree_terms,
@@ -44,7 +46,7 @@ def setup():
 
     root = tk.Tk()
     root.title("Setup Firebird DB Connection (Same as Cutting Manager)")
-    root.geometry("500x350")
+    root.geometry("500x390")
 
     # Load existing config if present
     global existing_config
@@ -74,17 +76,23 @@ def setup():
     if existing_config:
         password_entry.insert(0, existing_config.get("password", ""))
 
-    tk.Label(root, text="File Path (optional)").grid(row=4, column=0, sticky="w", padx=5, pady=5)
+    tk.Label(root, text="Developer Password").grid(row=4, column=0, sticky="w", padx=5, pady=5)
+    developer_password_entry = tk.Entry(root, width=30, show="*")
+    developer_password_entry.grid(row=4, column=1)
+    if existing_config:
+        developer_password_entry.insert(0, existing_config.get("developer_password", ""))
+
+    tk.Label(root, text="File Path (optional)").grid(row=5, column=0, sticky="w", padx=5, pady=5)
     filepath_entry = tk.Entry(root, width=30)
-    filepath_entry.grid(row=4, column=1)
+    filepath_entry.grid(row=5, column=1)
     if existing_config:
         filepath_entry.insert(0, existing_config.get("filepath", "C:/ZAWare/DB/CutMan/CUTMAN.FDB"))
     else:
         filepath_entry.insert(0, "C:/ZAWare/DB/CutMan/CUTMAN.FDB")
 
-    tk.Label(root, text="Charset (optional)").grid(row=5, column=0, sticky="w", padx=5, pady=5)
+    tk.Label(root, text="Charset (optional)").grid(row=6, column=0, sticky="w", padx=5, pady=5)
     charset_entry = tk.Entry(root, width=30)
-    charset_entry.grid(row=5, column=1)
+    charset_entry.grid(row=6, column=1)
     if existing_config:
         charset_entry.insert(0, existing_config.get("charset", "UTF8"))
     else:
@@ -101,16 +109,16 @@ def setup():
         wraplength=450,
         justify="left"
     )
-    agree_terms_check.grid(row=6, column=0, columnspan=2, pady=10)
+    agree_terms_check.grid(row=7, column=0, columnspan=2, pady=10)
 
     # Optional: clickable license link
     license_link = tk.Label(root, text="View License", fg="blue", cursor="hand2")
-    license_link.grid(row=7, column=0, columnspan=2, pady=(0, 10))
+    license_link.grid(row=8, column=0, columnspan=2, pady=(0, 10))
     license_link.bind("<Button-1>", lambda e: open_license_link())
 
     # Save button below everything
     submit_btn = tk.Button(root, text="Save", command=on_submit, width=15)
-    submit_btn.grid(row=8, column=0, columnspan=2, pady=10)
+    submit_btn.grid(row=9, column=0, columnspan=2, pady=10)
 
     root.mainloop()
 def get_setup_info() -> dict:

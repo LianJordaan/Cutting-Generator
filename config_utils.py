@@ -6,7 +6,7 @@ CONFIG_PATH = os.path.expanduser("~/.myapp_config.enc")
 KEY_PATH = os.path.expanduser("~/.myapp_key.key")
 
 # Hardcode the developer password here.
-DEVELOPER_PASSWORD = ""
+DEVELOPER_PASSWORD = "bbh.2026"
 
 def generate_key():
     """Generate and save a key for encryption"""
