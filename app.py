@@ -17,7 +17,7 @@ from shape_gen import *
 print("Libraries loaded.")
 
 APP_NAME = "Cutting Generator"
-APP_VERSION = "v4.5.2"
+APP_VERSION = "v4.5.3"
 AUTHOR = "Lian Jordaan"
 
 WINDOW_TITLE = f"{APP_NAME} {APP_VERSION} - {AUTHOR}"
