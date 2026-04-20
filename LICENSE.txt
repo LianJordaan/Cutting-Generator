@@ -36,7 +36,13 @@ agreement with Licensor.
     separate handwritten license agreement is obtained from Licensor.
 3.3 Licensor may terminate this Agreement immediately if Licensee
     breaches any terms of this Agreement.
-3.4 Any use of the Software without a valid license, including use
+3.4 Licensor may also terminate this Agreement, or revoke any part of
+    the authorization granted under it, at any time and for any reason,
+    with or without prior notice. Such termination or revocation may
+    apply to the entire Licensee, or only to a specific branch, person,
+    user, device, computer, installation, or location identified by
+    Licensor.
+3.5 Any use of the Software without a valid license, including use
     after termination of this Agreement, shall be considered
     unlawful and unauthorized use. If Licensee wishes to continue
     using the Software after termination of this Agreement, Licensee
@@ -60,6 +66,10 @@ e) Continue using the Software after termination of this Agreement,
     obtained and kept current through annual renewal while Licensor is
     not employed by Discount Boards Upington. Any such use without that
     contract shall be deemed unlawful and unauthorized.
+f) Continue using the Software in any branch, by any person, or on any
+    computer, device, or installation for which Licensor has withdrawn,
+    revoked, or terminated authorization, whether or not the remainder
+    of this Agreement remains in effect for others.
 
 5. Ownership
 ------------
