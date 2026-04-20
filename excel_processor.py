@@ -683,7 +683,7 @@ def process_erik_cutlist(file_path, template_path):
     if end_row_index is None:
         print("[ERROR] Could not find 'die einde' in column B. Cannot process Erik cutlist.")
         return
-    print(f"[INFO] Found 'die einde' at row index: {end_row_index}")
+    # print(f"[INFO] Found 'die einde' at row index: {end_row_index}")
 
     # loop in the A column from the first row all the way down to the end row - 1.
     current_board_color = None
@@ -705,11 +705,11 @@ def process_erik_cutlist(file_path, template_path):
             current_board_color = sheet.cell_value(row_idx, 1)
             if current_board_color in known_board_category_mappings:
                 current_board_category = known_board_category_mappings[current_board_color]
-                print(f"[INFO] Board category for color '{current_board_color}' found in cache: {current_board_category}")
+                # print(f"[INFO] Board category for color '{current_board_color}' found in cache: {current_board_category}")
             else:
                 current_board_category = normalize_board_types(current_board_color)
                 known_board_category_mappings[current_board_color] = current_board_category
-            print(f"[INFO] Board category changed: {current_board_category} (Color: {current_board_color})")
+            # print(f"[INFO] Board category changed: {current_board_category} (Color: {current_board_color})")
     
     
     for row_idx in range(end_row_index):
@@ -718,11 +718,11 @@ def process_erik_cutlist(file_path, template_path):
             current_edging_color = sheet.cell_value(row_idx, 1)
             if current_edging_color in known_edging_category_mappings:
                 current_edging_category = known_edging_category_mappings[current_edging_color]
-                print(f"[INFO] Edging category for color '{current_edging_color}' found in cache: {current_edging_category}")
+                # print(f"[INFO] Edging category for color '{current_edging_color}' found in cache: {current_edging_category}")
             else:
                 current_edging_category = normalize_edging_types(current_edging_color)
                 known_edging_category_mappings[current_edging_color] = current_edging_category
-            print(f"[INFO] Edging category changed: {current_edging_category} (Color: {current_edging_color})")
+            # print(f"[INFO] Edging category changed: {current_edging_category} (Color: {current_edging_color})")
 
     for row_idx in range(end_row_index):
         cell_value = sheet.cell_value(row_idx, 0)
@@ -730,20 +730,20 @@ def process_erik_cutlist(file_path, template_path):
             current_board_color = sheet.cell_value(row_idx, 1)
             if current_board_color in known_board_category_mappings:
                 current_board_category = known_board_category_mappings[current_board_color]
-                print(f"[INFO] Board category for color '{current_board_color}' found in cache: {current_board_category}")
+                # print(f"[INFO] Board category for color '{current_board_color}' found in cache: {current_board_category}")
             else:
                 current_board_category = normalize_board_types(current_board_color)
                 known_board_category_mappings[current_board_color] = current_board_category
-            print(f"[INFO] Board category changed: {current_board_category} (Color: {current_board_color})")
+            # print(f"[INFO] Board category changed: {current_board_category} (Color: {current_board_color})")
         if "edging" in cell_value.lower():
             current_edging_color = sheet.cell_value(row_idx, 1)
             if current_edging_color in known_edging_category_mappings:
                 current_edging_category = known_edging_category_mappings[current_edging_color]
-                print(f"[INFO] Edging category for color '{current_edging_color}' found in cache: {current_edging_category}")
+                # print(f"[INFO] Edging category for color '{current_edging_color}' found in cache: {current_edging_category}")
             else:
                 current_edging_category = normalize_edging_types(current_edging_color)
                 known_edging_category_mappings[current_edging_color] = current_edging_category
-            print(f"[INFO] Edging category changed: {current_edging_category} (Color: {current_edging_color})")
+            # print(f"[INFO] Edging category changed: {current_edging_category} (Color: {current_edging_color})")
         length = to_int_value(sheet.cell_value(row_idx, 1))
         width = to_int_value(sheet.cell_value(row_idx, 2))
         quantity = to_int_value(sheet.cell_value(row_idx, 3))
@@ -753,7 +753,7 @@ def process_erik_cutlist(file_path, template_path):
 
         # check if length and width are both numbers
         if length is not None and width is not None:
-            print(f"[INFO] Processing piece: Length={length}, Width={width}, Quantity={quantity}, Edge Length={edge_length}, Edge Width={edge_width}, Extra={extra}")
+            # print(f"[INFO] Processing piece: Length={length}, Width={width}, Quantity={quantity}, Edge Length={edge_length}, Edge Width={edge_width}, Extra={extra}")
             # instead of writing this data to the template file, we want to store it inside a variable, and it should be categorized by per board_color.
 
             holes = 0
@@ -782,7 +782,7 @@ def process_erik_cutlist(file_path, template_path):
                 "edge_color": current_edging_color,
                 "board_color": current_board_color
             })
-    print("[DEBUG]" + str(all_boards_data))
+    # print("[DEBUG]" + str(all_boards_data))
 
     current_sheet_index = 0
 
@@ -810,9 +810,9 @@ def process_erik_cutlist(file_path, template_path):
 
         # for each piece, write the data to the template file, but also include the board category and edging category in the print sheet.
         for piece in pieces:
-            print(f"[INFO] Writing piece: Length={piece['length']}, Width={piece['width']}, Quantity={piece['quantity']}, Edge Length={piece['edge_length']}, Edge Width={piece['edge_width']}, Extra={piece['extra']}, Board Category={piece['board_category']}, Edging Category={piece['edge_category']}")
+            # print(f"[INFO] Writing piece: Length={piece['length']}, Width={piece['width']}, Quantity={piece['quantity']}, Edge Length={piece['edge_length']}, Edge Width={piece['edge_width']}, Extra={piece['extra']}, Board Category={piece['board_category']}, Edging Category={piece['edge_category']}")
 
-            print(piece['edge_color'])
+            # print(piece['edge_color'])
             if piece['edge_color'] == "":
                 piece['edge_color'] = "** NO EDGING"
 
