@@ -678,6 +678,15 @@ def process_erik_cutlist(file_path, template_path):
         # Fallback in case no matching range is found
         ws.cell(row=row, column=column, value=value)
 
+    def get_xls_cell_value_safe(sheet, row_idx, col_idx, default=""):
+        """Safely read an xlrd cell; return default when column is missing in the row."""
+        try:
+            if col_idx >= sheet.row_len(row_idx):
+                return default
+            return sheet.cell_value(row_idx, col_idx)
+        except Exception:
+            return default
+
     newTemplatePath = copy_template_to_input_folder(file_path, template_path)
     # rename the copied template to "CUTTING - {job_name}.xlsx"
     job_name = os.path.splitext(os.path.basename(file_path))[0]
@@ -689,7 +698,8 @@ def process_erik_cutlist(file_path, template_path):
     sheet = book.sheet_by_index(0)
     end_row_index = None
     for row_idx in range(sheet.nrows):
-        cell_value = sheet.cell_value(row_idx, 1)  # Column B is index 1
+        # Some legacy .xls rows can be sparse; safely skip rows without column B.
+        cell_value = get_xls_cell_value_safe(sheet, row_idx, 1, "")  # Column B is index 1
         if isinstance(cell_value, str) and "die einde" in cell_value.lower():
             end_row_index = row_idx
             break
@@ -713,9 +723,10 @@ def process_erik_cutlist(file_path, template_path):
 
     
     for row_idx in range(end_row_index):
-        cell_value = sheet.cell_value(row_idx, 0)
-        if "board type" in cell_value.lower():
-            current_board_color = sheet.cell_value(row_idx, 1)
+        cell_value = get_xls_cell_value_safe(sheet, row_idx, 0, "")
+        cell_text = str(cell_value).lower()
+        if "board type" in cell_text:
+            current_board_color = get_xls_cell_value_safe(sheet, row_idx, 1, "")
             if current_board_color in known_board_category_mappings:
                 current_board_category = known_board_category_mappings[current_board_color]
                 # print(f"[INFO] Board category for color '{current_board_color}' found in cache: {current_board_category}")
@@ -726,9 +737,10 @@ def process_erik_cutlist(file_path, template_path):
     
     
     for row_idx in range(end_row_index):
-        cell_value = sheet.cell_value(row_idx, 0)
-        if "edging" in cell_value.lower():
-            current_edging_color = sheet.cell_value(row_idx, 1)
+        cell_value = get_xls_cell_value_safe(sheet, row_idx, 0, "")
+        cell_text = str(cell_value).lower()
+        if "edging" in cell_text:
+            current_edging_color = get_xls_cell_value_safe(sheet, row_idx, 1, "")
             if current_edging_color in known_edging_category_mappings:
                 current_edging_category = known_edging_category_mappings[current_edging_color]
                 # print(f"[INFO] Edging category for color '{current_edging_color}' found in cache: {current_edging_category}")
@@ -738,9 +750,10 @@ def process_erik_cutlist(file_path, template_path):
             # print(f"[INFO] Edging category changed: {current_edging_category} (Color: {current_edging_color})")
 
     for row_idx in range(end_row_index):
-        cell_value = sheet.cell_value(row_idx, 0)
-        if "board type" in cell_value.lower():
-            current_board_color = sheet.cell_value(row_idx, 1)
+        cell_value = get_xls_cell_value_safe(sheet, row_idx, 0, "")
+        cell_text = str(cell_value).lower()
+        if "board type" in cell_text:
+            current_board_color = get_xls_cell_value_safe(sheet, row_idx, 1, "")
             if current_board_color in known_board_category_mappings:
                 current_board_category = known_board_category_mappings[current_board_color]
                 # print(f"[INFO] Board category for color '{current_board_color}' found in cache: {current_board_category}")
@@ -748,8 +761,8 @@ def process_erik_cutlist(file_path, template_path):
                 current_board_category = normalize_board_types(current_board_color)
                 known_board_category_mappings[current_board_color] = current_board_category
             # print(f"[INFO] Board category changed: {current_board_category} (Color: {current_board_color})")
-        if "edging" in cell_value.lower():
-            current_edging_color = sheet.cell_value(row_idx, 1)
+        if "edging" in cell_text:
+            current_edging_color = get_xls_cell_value_safe(sheet, row_idx, 1, "")
             if current_edging_color in known_edging_category_mappings:
                 current_edging_category = known_edging_category_mappings[current_edging_color]
                 # print(f"[INFO] Edging category for color '{current_edging_color}' found in cache: {current_edging_category}")
@@ -757,12 +770,12 @@ def process_erik_cutlist(file_path, template_path):
                 current_edging_category = normalize_edging_types(current_edging_color)
                 known_edging_category_mappings[current_edging_color] = current_edging_category
             # print(f"[INFO] Edging category changed: {current_edging_category} (Color: {current_edging_color})")
-        length = to_int_value(sheet.cell_value(row_idx, 1))
-        width = to_int_value(sheet.cell_value(row_idx, 2))
-        quantity = to_int_value(sheet.cell_value(row_idx, 3))
-        edge_length = to_int_value(sheet.cell_value(row_idx, 4))
-        edge_width = to_int_value(sheet.cell_value(row_idx, 5))
-        extra = sheet.cell_value(row_idx, 6)
+        length = to_int_value(get_xls_cell_value_safe(sheet, row_idx, 1, ""))
+        width = to_int_value(get_xls_cell_value_safe(sheet, row_idx, 2, ""))
+        quantity = to_int_value(get_xls_cell_value_safe(sheet, row_idx, 3, ""))
+        edge_length = to_int_value(get_xls_cell_value_safe(sheet, row_idx, 4, ""))
+        edge_width = to_int_value(get_xls_cell_value_safe(sheet, row_idx, 5, ""))
+        extra = get_xls_cell_value_safe(sheet, row_idx, 6, "")
 
         # check if length and width are both numbers
         if length is not None and width is not None:
@@ -770,6 +783,10 @@ def process_erik_cutlist(file_path, template_path):
             # instead of writing this data to the template file, we want to store it inside a variable, and it should be categorized by per board_color.
 
             holes = 0
+
+            if current_board_color in (None, ""):
+                # Skip ambiguous data rows before a board header is found.
+                continue
 
             if current_board_color not in all_boards_data:
                 all_boards_data[current_board_color] = []
@@ -806,6 +823,9 @@ def process_erik_cutlist(file_path, template_path):
     # loop thru the indexes of all_boards_data
     for board_color, pieces in all_boards_data.items():
         print(f"[INFO] Writing data for board color: {board_color} with {len(pieces)} pieces. Onto sheet index: {current_sheet_index}")
+        if not pieces:
+            continue
+
         if current_sheet_index >= len(wb.worksheets):
             print(f"[WARNING] Not enough sheets in template for board color '{board_color}'. Skipping remaining data.")
             break

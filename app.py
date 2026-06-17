@@ -2,6 +2,7 @@ print("🚀 Starting Cutting Generator...")
 
 import sys
 import os
+import traceback
 
 print("Loading libraries...")
 
@@ -83,6 +84,7 @@ if __name__ == "__main__":
                         sys.exit(0)
                     except Exception as e:
                         print(f"❌ Error while processing Erik cutlist: {e}")
+                        traceback.print_exc()
                         sys.exit(0)
             except Exception as e:
                 print(f"ERROR: failed to check Erik cutlist: {e}")
