@@ -9,6 +9,7 @@ import warnings
 from config_utils import *
 from tqdm import tqdm
 import re
+from decimal import Decimal, ROUND_HALF_UP
 
 valid_bord_types = {"plain boards", "grain boards"}
 invalid_bord_names = {"own peen", "own grain", "top 600", "top 900"}
@@ -634,17 +635,29 @@ def normalize_extra_data(extra_data):
 
 def process_erik_cutlist(file_path, template_path):
     def to_int_value(value):
-        """Convert numeric-looking values to rounded int; return None when not numeric."""
         if isinstance(value, (int, float)):
-            return int(round(value))
+            return int(
+                Decimal(str(value)).quantize(
+                    Decimal("1"),
+                    rounding=ROUND_HALF_UP
+                )
+            )
+
         if isinstance(value, str):
             text = value.strip()
             if text == "":
                 return None
+
             try:
-                return int(round(float(text.replace(",", "."))))
-            except ValueError:
+                return int(
+                    Decimal(text.replace(",", ".")).quantize(
+                        Decimal("1"),
+                        rounding=ROUND_HALF_UP
+                    )
+                )
+            except Exception:
                 return None
+
         return None
 
     def set_cell_value_safe_for_merge(ws, row, column, value):
