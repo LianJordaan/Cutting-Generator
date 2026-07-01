@@ -46,6 +46,13 @@ def load_config() -> dict:
         enc = f.read()
     return decrypt_config(enc, key)
 
+def is_config_complete(config: dict | None) -> bool:
+    if not config:
+        return False
+
+    required_fields = ("ip", "username", "password")
+    return all(str(config.get(field, "")).strip() for field in required_fields)
+
 def is_developer_mode_enabled(config: dict = None) -> bool:
     if config is None:
         config = load_config()

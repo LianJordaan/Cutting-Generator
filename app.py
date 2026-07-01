@@ -14,11 +14,12 @@ from config_utils import *
 from setup_gui import *
 from helpers import *
 from shape_gen import *
+from device_auth import ensure_device_is_authorized, get_machine_guid
 
 print("Libraries loaded.")
 
 APP_NAME = "Cutting Generator"
-APP_VERSION = "v4.5.3"
+APP_VERSION = "v5.0.0"
 AUTHOR = "Lian Jordaan"
 
 WINDOW_TITLE = f"{APP_NAME} {APP_VERSION} - {AUTHOR}"
@@ -41,10 +42,31 @@ else:
 if __name__ == "__main__":
     try:
 
+        if len(sys.argv) > 1 and sys.argv[1] == "--machine-guid":
+            print(get_machine_guid())
+            sys.exit(0)
+
+        authorization = ensure_device_is_authorized()
+        if not authorization.allowed:
+            print("This program could not verify device authorization.")
+            print(authorization.message)
+            print(f"Machine GUID: {authorization.machine_guid}")
+            print("Press Enter to exit...")
+            input()
+            sys.exit(0)
+
+        if authorization.checked_remotely:
+            print(f"Device authorization refreshed. Next required check after {authorization.valid_until_utc}.")
+
         config = get_setup_info()
-        if not config:
+        if not is_config_complete(config):
             setup()
             config = get_setup_info()
+            if not is_config_complete(config):
+                print("Setup is incomplete. Please re-run the program after saving the required settings.")
+                print("Press enter to exit...")
+                input()
+                sys.exit(0)
             print("Setup complete. Please re-run the program.")
             print("Press enter to exit...")
             input()
