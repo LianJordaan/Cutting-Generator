@@ -1,3 +1,12 @@
 {
-  "authorized_machine_guids": []
+  "product": "Cutting Generator",
+  "owner": "ByteBuilders Hosting",
+  "authorized_devices": [
+    {
+      "machine_guid": "replace-with-machine-guid",
+      "expires_on": "2027-12-31",
+      "comment": "Example entry. Replace this with the real device ID before enabling it.",
+      "enabled": false
+    }
+  ]
 }

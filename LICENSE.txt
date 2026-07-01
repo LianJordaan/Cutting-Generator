@@ -1,121 +1,133 @@
-Discount Boards Software License (Full Version)
-===============================================
+Cutting Generator Software License
+==================================
 
-Copyright (c) 2025 Lian Jordaan. All rights reserved.
+Copyright (c) 2026 ByteBuilders Hosting. All rights reserved.
 
 This Software License Agreement (the "Agreement") governs your use of the
-software known as Discount Boards Software (the "Software") and is entered
-into by and between Lian Jordaan ("Licensor") and the Licensee as defined
+software known as Cutting Generator (the "Software") and is entered into by
+and between ByteBuilders Hosting (the "Licensor") and the Licensee as defined
 below.
+
+Cutting Generator was sold to ByteBuilders Hosting and is now owned by
+ByteBuilders Hosting.
 
 1. Definitions
 --------------
 1.1 "Software" means the executable files, source code, documentation,
-    and any other materials provided by Licensor under this Agreement.
-1.2 "Licensee" means Discount Boards Upington and its affiliated branches
-    who are authorized to use the Software under this Agreement.
-1.3 "Authorized Use" means the installation and operation of the Software
-    strictly in accordance with the terms of this Agreement.
+    configuration files, and any other materials provided under this
+    Agreement.
+1.2 "Licensee" means the company, branch, user, or other party that has
+    been granted permission by Licensor to use the Software.
+1.3 "Authorized Use" means installation and operation of the Software only
+    on devices and for users explicitly approved by Licensor.
+1.4 "Authorized Device" means a computer or installation identified by its
+    Machine GUID or another identifier accepted by Licensor.
+1.5 "Executable Copy" means only the compiled executable version of the
+    Software provided by Licensor for use by Licensee.
+1.6 "Temporary Usage Right" means a limited, revocable, non-transferable,
+    non-exclusive permission to use an Executable Copy for the period and
+    purpose approved by Licensor.
 
 2. Grant of License
-------------------
+-------------------
 Subject to the terms of this Agreement, Licensor grants Licensee a
-non-transferable, non-exclusive, revocable license to install and use
-the Software solely while Lian Jordaan is employed by Discount Boards
-Upington. Any use of the Software outside of this authorization is
-prohibited unless expressly permitted by a separate written license
-agreement with Licensor.
+non-transferable, non-exclusive, revocable Temporary Usage Right to install
+and use only an Executable Copy of the Software on Authorized Devices and only
+while the related licence remains valid.
 
-3. Termination
---------------
-3.1 This License shall automatically terminate upon the termination
-    of Lian Jordaan’s employment with Discount Boards Upington,
-    regardless of the reason for termination.
-3.2 Upon termination, Licensee must immediately cease all use, remove
-    the Software from all systems, and destroy any copies, unless a
-    separate handwritten license agreement is obtained from Licensor.
-3.3 Licensor may terminate this Agreement immediately if Licensee
-    breaches any terms of this Agreement.
-3.4 Licensor may also terminate this Agreement, or revoke any part of
-    the authorization granted under it, at any time and for any reason,
-    with or without prior notice. Such termination or revocation may
-    apply to the entire Licensee, or only to a specific branch, person,
-    user, device, computer, installation, or location identified by
+2.1 Licensee receives only the limited right to use the Executable Copy as
+    expressly allowed by Licensor. No ownership rights, source code rights,
+    build rights, modification rights, or other intellectual property rights
+    are granted to Licensee.
+2.2 Any permission granted by Licensor is temporary only and may be limited by
+    time, device, branch, company, user, or other conditions chosen by
     Licensor.
-3.5 Any use of the Software without a valid license, including use
-    after termination of this Agreement, shall be considered
-    unlawful and unauthorized use. If Licensee wishes to continue
-    using the Software after termination of this Agreement, Licensee
-    must first obtain a handwritten contract signed by Licensor. Any
-    such contract shall be valid for no longer than one (1) year and
-    must be renewed in writing every year that Licensor is not employed
-    by Discount Boards Upington.
+
+3. Device Validation and Expiry
+-------------------------------
+3.1 The Software may verify whether a device is licensed by checking a list of
+    Authorized Devices maintained by Licensor.
+3.2 Licensor may attach an expiry date, comment, or status flag to any
+    Authorized Device entry.
+3.3 If a device is not listed, is disabled, or has passed its expiry date,
+    that device is not licensed to use the Software.
+3.4 Licensor may revoke or refuse a licence for any device, company, branch,
+    user, or installation at any time.
 
 4. Restrictions
 ---------------
 Licensee shall not, under any circumstances:
-a) Copy, reproduce, or duplicate the Software, in whole or in part,
-   except as expressly permitted herein;
-b) Modify, adapt, translate, or create derivative works of the Software;
-c) Distribute, sublicense, lease, rent, or otherwise transfer the
-   Software to any third party;
-d) Reverse engineer, decompile, or disassemble the Software, except
-   to the extent permitted by applicable law;
-e) Continue using the Software after termination of this Agreement,
-    unless a separate handwritten contract signed by Licensor is
-    obtained and kept current through annual renewal while Licensor is
-    not employed by Discount Boards Upington. Any such use without that
-    contract shall be deemed unlawful and unauthorized.
-f) Continue using the Software in any branch, by any person, or on any
-    computer, device, or installation for which Licensor has withdrawn,
-    revoked, or terminated authorization, whether or not the remainder
-    of this Agreement remains in effect for others.
+a) Copy, reproduce, or duplicate the Software except as expressly permitted;
+b) Access, inspect, read, extract, disclose, or use the source code of the
+    Software;
+c) Compile, rebuild, repackage, or otherwise create executables or other
+    derived builds from the Software;
+d) Modify, adapt, translate, patch, tamper with, or create derivative works
+    of the Software or any part of it;
+e) Bypass, disable, interfere with, evade, or attempt to defeat any licence
+    validation, device checks, security measures, technical restrictions, or
+    access controls included in the Software;
+f) Reverse engineer, decompile, disassemble, or otherwise attempt to discover
+    the internal structure, logic, or operation of the Software, except only to
+    the extent that such restriction is prohibited by applicable law;
+g) Distribute, sublicense, lease, rent, lend, sell, assign, share, or
+    otherwise transfer the Software or any rights relating to it to any third
+    party without written permission from Licensor;
+h) Use anything other than the Executable Copy supplied by Licensor for normal
+    operation of the Software;
+i) Continue using the Software on any device, installation, branch, company,
+    or account that does not have a valid licence.
 
 5. Ownership
 ------------
-All title, ownership rights, and intellectual property rights in and
-to the Software, including any copies made, remain with Licensor.
-Licensee acknowledges that no title or ownership is transferred to them
-by this Agreement.
+All title, ownership rights, and intellectual property rights in and to the
+Software, including all copies, belong to ByteBuilders Hosting. Licensee
+acknowledges that Cutting Generator was purchased by and is owned by
+ByteBuilders Hosting.
+
+5.1 ByteBuilders Hosting owns the Software and all rights, title, and
+    interests in it, including all source code, executables, compiled output,
+    methods, logic, designs, documentation, licence systems, validation
+    systems, and all modifications or derivatives whether authorized or not.
+5.2 Any rights given by Licensor are strictly limited to temporary use of the
+    Executable Copy and do not transfer any ownership or control to Licensee.
+5.3 All rights not expressly granted in this Agreement are reserved solely by
+    ByteBuilders Hosting.
 
 6. Disclaimer of Warranty
 -------------------------
-The Software is provided “AS IS” without warranty of any kind. Licensor
-expressly disclaims all warranties, express or implied, including but not
-limited to warranties of merchantability, fitness for a particular purpose,
-non-infringement, and any warranties arising from course of dealing or usage
-of trade.
+The Software is provided "AS IS" without warranty of any kind. Licensor
+disclaims all warranties, express or implied, including warranties of
+merchantability, fitness for a particular purpose, and non-infringement.
 
 7. Limitation of Liability
 --------------------------
-To the maximum extent permitted by law, Licensor shall not be liable for
-any indirect, incidental, special, consequential, or punitive damages,
-including loss of profits, data, or business interruption, arising out of
-or in connection with the use, inability to use, or performance of the
-Software, even if Licensor has been advised of the possibility of such damages.
+To the maximum extent permitted by law, Licensor shall not be liable for any
+indirect, incidental, special, consequential, or punitive damages, including
+loss of profits, data, or business interruption, arising out of or in
+connection with the use of the Software.
 
 8. Governing Law
 ----------------
-This Agreement shall be governed by and construed in accordance with the
-laws of South Africa. Any disputes arising out of or relating to this
-Agreement shall be subject to the exclusive jurisdiction of the courts
-of South Africa.
+This Agreement shall be governed by and construed in accordance with the laws
+of South Africa. Any disputes arising out of or relating to this Agreement
+shall be subject to the exclusive jurisdiction of the courts of South Africa.
 
 9. Severability
 ---------------
-If any provision of this Agreement is found to be invalid or
-unenforceable, the remaining provisions shall remain in full force
-and effect.
+If any provision of this Agreement is found to be invalid or unenforceable,
+the remaining provisions shall remain in full force and effect.
 
 10. Entire Agreement
--------------------
-This Agreement constitutes the entire agreement between Licensor and
-Licensee with respect to the Software and supersedes all prior or
-contemporaneous communications, whether oral or written, relating
+--------------------
+This Agreement constitutes the entire agreement between Licensor and Licensee
+with respect to the Software and supersedes all prior communications relating
 to the subject matter herein.
 
 11. Acceptance
 --------------
 By installing, copying, or otherwise using the Software, Licensee
-acknowledges that they have read, understood, and agreed to be bound
-by this Agreement.
+acknowledges that they have read, understood, and agreed to be bound by this
+Agreement, including that ByteBuilders Hosting retains all rights in the
+Software and that Licensee is permitted only temporary use of the Executable
+Copy under the conditions set by Licensor.

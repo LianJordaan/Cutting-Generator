@@ -5,7 +5,7 @@ import urllib.request
 import winreg
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, time, timedelta, timezone
 
 DEFAULT_AUTHORIZATION_URL = (
     "https://raw.githubusercontent.com/LianJordaan/Cutting-Generator/refs/heads/master/authorized_machines.json"
@@ -14,6 +14,7 @@ AUTHORIZATION_URL = os.environ.get("CUTTING_GENERATOR_AUTH_URL", DEFAULT_AUTHORI
 AUTH_CACHE_DIR = os.path.join(os.path.expanduser("~"), ".cutting_generator")
 AUTH_CACHE_PATH = os.path.join(AUTH_CACHE_DIR, "device_auth.json")
 AUTH_CACHE_WINDOW = timedelta(hours=24)
+INVALID_LICENSE_MESSAGE = "You do not have a valid licence. Please contact ByteBuilders Hosting to have it resolved."
 
 
 @dataclass
@@ -23,6 +24,13 @@ class AuthorizationResult:
     message: str
     checked_remotely: bool
     valid_until_utc: str | None = None
+
+
+@dataclass
+class MachineLicenseEntry:
+    machine_guid: str
+    expires_utc: datetime | None = None
+    comment: str = ""
 
 
 def normalize_machine_guid(machine_guid: str) -> str:
@@ -93,15 +101,40 @@ def format_utc_timestamp(timestamp: datetime) -> str:
     return timestamp.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
-def extract_authorized_machine_guids(payload) -> set[str]:
-    authorized_machine_guids = set()
+def parse_license_expiry(entry: dict) -> datetime | None:
+    for key in ("expires_at_utc", "expires_at", "expires_on", "expiry_date", "expires"):
+        expiry_value = entry.get(key)
+        if not expiry_value:
+            continue
+
+        expiry_text = str(expiry_value).strip()
+        if not expiry_text:
+            continue
+
+        if len(expiry_text) == 10 and expiry_text.count("-") == 2:
+            try:
+                expiry_date = datetime.strptime(expiry_text, "%Y-%m-%d").date()
+            except ValueError as exc:
+                raise ValueError(f"Invalid expiry date '{expiry_text}' for machine GUID entry.") from exc
+            return datetime.combine(expiry_date, time.max, tzinfo=timezone.utc)
+
+        parsed_expiry = parse_utc_timestamp(expiry_text)
+        if parsed_expiry is None:
+            raise ValueError(f"Invalid expiry timestamp '{expiry_text}' for machine GUID entry.")
+        return parsed_expiry
+
+    return None
+
+
+def extract_authorized_machine_entries(payload) -> dict[str, MachineLicenseEntry]:
+    authorized_machine_entries: dict[str, MachineLicenseEntry] = {}
     found_supported_structure = False
 
     def add_machine_guid(entry) -> None:
         if isinstance(entry, str):
             normalized_guid = normalize_machine_guid(entry)
             if normalized_guid:
-                authorized_machine_guids.add(normalized_guid)
+                authorized_machine_entries[normalized_guid] = MachineLicenseEntry(machine_guid=normalized_guid)
             return
 
         if not isinstance(entry, dict):
@@ -112,7 +145,14 @@ def extract_authorized_machine_guids(payload) -> set[str]:
 
         machine_guid = entry.get("machine_guid") or entry.get("machineGuid") or entry.get("id")
         if machine_guid:
-            authorized_machine_guids.add(normalize_machine_guid(machine_guid))
+            normalized_guid = normalize_machine_guid(machine_guid)
+            if not normalized_guid:
+                return
+            authorized_machine_entries[normalized_guid] = MachineLicenseEntry(
+                machine_guid=normalized_guid,
+                expires_utc=parse_license_expiry(entry),
+                comment=str(entry.get("comment", "")).strip(),
+            )
 
     if isinstance(payload, list):
         found_supported_structure = True
@@ -128,13 +168,13 @@ def extract_authorized_machine_guids(payload) -> set[str]:
 
     if not found_supported_structure:
         raise ValueError(
-            "Authorization allowlist must be a JSON list or an object with authorized_machine_guids/authorized_devices."
+            "Authorization allowlist must be a JSON list or an object with authorized_machine_guids/authorized_devices/devices."
         )
 
-    return authorized_machine_guids
+    return authorized_machine_entries
 
 
-def fetch_authorized_machine_guids(authorization_url: str = AUTHORIZATION_URL) -> set[str]:
+def fetch_authorized_machine_entries(authorization_url: str = AUTHORIZATION_URL) -> dict[str, MachineLicenseEntry]:
     request = urllib.request.Request(
         authorization_url,
         headers={"User-Agent": "CuttingGeneratorDeviceAuth"},
@@ -143,7 +183,14 @@ def fetch_authorized_machine_guids(authorization_url: str = AUTHORIZATION_URL) -
     with urllib.request.urlopen(request, timeout=10) as response:
         payload = json.load(response)
 
-    return extract_authorized_machine_guids(payload)
+    return extract_authorized_machine_entries(payload)
+
+
+def compute_access_valid_until_utc(now_utc: datetime, expires_utc: datetime | None) -> datetime:
+    cache_valid_until_utc = now_utc + AUTH_CACHE_WINDOW
+    if expires_utc is None:
+        return cache_valid_until_utc
+    return min(cache_valid_until_utc, expires_utc)
 
 
 def is_cached_authorization_valid(
@@ -154,16 +201,16 @@ def is_cached_authorization_valid(
 ) -> bool:
     cached_machine_guid = normalize_machine_guid(cache_data.get("machine_guid", ""))
     cached_authorization_url = cache_data.get("authorization_url")
-    last_validation_utc = parse_utc_timestamp(cache_data.get("last_successful_validation_at_utc"))
+    cached_access_valid_until_utc = parse_utc_timestamp(cache_data.get("cached_access_valid_until_utc"))
 
     if (
         cached_machine_guid != machine_guid
         or cached_authorization_url != authorization_url
-        or last_validation_utc is None
+        or cached_access_valid_until_utc is None
     ):
         return False
 
-    return now_utc - last_validation_utc < AUTH_CACHE_WINDOW
+    return now_utc < cached_access_valid_until_utc
 
 
 def ensure_device_is_authorized(authorization_url: str = AUTHORIZATION_URL) -> AuthorizationResult:
@@ -172,14 +219,12 @@ def ensure_device_is_authorized(authorization_url: str = AUTHORIZATION_URL) -> A
     cache_data = load_auth_cache()
 
     if is_cached_authorization_valid(cache_data, machine_guid, authorization_url, now_utc):
-        last_validation_utc = parse_utc_timestamp(cache_data.get("last_successful_validation_at_utc"))
-        valid_until_utc = format_utc_timestamp(last_validation_utc + AUTH_CACHE_WINDOW)
         return AuthorizationResult(
             allowed=True,
             machine_guid=machine_guid,
-            message="Cached device authorization is still valid.",
+            message="Cached device licence is still valid.",
             checked_remotely=False,
-            valid_until_utc=valid_until_utc,
+            valid_until_utc=cache_data.get("cached_access_valid_until_utc"),
         )
 
     cache_data["machine_guid"] = machine_guid
@@ -187,36 +232,54 @@ def ensure_device_is_authorized(authorization_url: str = AUTHORIZATION_URL) -> A
     cache_data["last_checked_at_utc"] = format_utc_timestamp(now_utc)
 
     try:
-        authorized_machine_guids = fetch_authorized_machine_guids(authorization_url)
+        authorized_machine_entries = fetch_authorized_machine_entries(authorization_url)
     except (OSError, ValueError, urllib.error.URLError) as exc:
         cache_data["last_failure_at_utc"] = format_utc_timestamp(now_utc)
-        cache_data["last_failure_reason"] = f"Unable to refresh device authorization: {exc}"
+        cache_data["last_failure_reason"] = f"Unable to refresh device licence: {exc}"
         save_auth_cache(cache_data)
         return AuthorizationResult(
             allowed=False,
             machine_guid=machine_guid,
-            message=(
-                f"Unable to refresh device authorization from {authorization_url}. "
-                f"A successful validation is required at least once every 24 hours. Error: {exc}"
-            ),
+            message=INVALID_LICENSE_MESSAGE,
             checked_remotely=True,
         )
 
-    if machine_guid not in authorized_machine_guids:
+    matching_entry = authorized_machine_entries.get(machine_guid)
+
+    if matching_entry is None:
         cache_data["last_failure_at_utc"] = format_utc_timestamp(now_utc)
-        cache_data["last_failure_reason"] = "Machine GUID is not present in the authorization allowlist."
+        cache_data["last_failure_reason"] = "Machine GUID is not present in the licence allowlist."
         save_auth_cache(cache_data)
         return AuthorizationResult(
             allowed=False,
             machine_guid=machine_guid,
-            message=(
-                f"This machine is not authorized in {authorization_url}. "
-                f"Add the Machine GUID below to the allowlist and try again."
-            ),
+            message=INVALID_LICENSE_MESSAGE,
             checked_remotely=True,
         )
+
+    if matching_entry.expires_utc is not None and now_utc >= matching_entry.expires_utc:
+        cache_data["last_failure_at_utc"] = format_utc_timestamp(now_utc)
+        cache_data["last_failure_reason"] = (
+            f"Machine licence expired at {format_utc_timestamp(matching_entry.expires_utc)}."
+        )
+        cache_data["licensed_until_utc"] = format_utc_timestamp(matching_entry.expires_utc)
+        cache_data["license_comment"] = matching_entry.comment or None
+        save_auth_cache(cache_data)
+        return AuthorizationResult(
+            allowed=False,
+            machine_guid=machine_guid,
+            message=INVALID_LICENSE_MESSAGE,
+            checked_remotely=True,
+        )
+
+    access_valid_until_utc = compute_access_valid_until_utc(now_utc, matching_entry.expires_utc)
 
     cache_data["last_successful_validation_at_utc"] = format_utc_timestamp(now_utc)
+    cache_data["cached_access_valid_until_utc"] = format_utc_timestamp(access_valid_until_utc)
+    cache_data["licensed_until_utc"] = (
+        format_utc_timestamp(matching_entry.expires_utc) if matching_entry.expires_utc is not None else None
+    )
+    cache_data["license_comment"] = matching_entry.comment or None
     cache_data["last_failure_at_utc"] = None
     cache_data["last_failure_reason"] = None
     save_auth_cache(cache_data)
@@ -224,7 +287,7 @@ def ensure_device_is_authorized(authorization_url: str = AUTHORIZATION_URL) -> A
     return AuthorizationResult(
         allowed=True,
         machine_guid=machine_guid,
-        message="Device authorization refreshed successfully.",
+        message="Device licence refreshed successfully.",
         checked_remotely=True,
-        valid_until_utc=format_utc_timestamp(now_utc + AUTH_CACHE_WINDOW),
+        valid_until_utc=format_utc_timestamp(access_valid_until_utc),
     )

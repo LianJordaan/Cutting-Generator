@@ -20,9 +20,12 @@ print("Libraries loaded.")
 
 APP_NAME = "Cutting Generator"
 APP_VERSION = "v5.0.0"
-AUTHOR = "Lian Jordaan"
+OWNER = "ByteBuilders Hosting"
+OWNERSHIP_NOTICE = f"{APP_NAME} was sold to {OWNER} and is now owned by {OWNER}."
 
-WINDOW_TITLE = f"{APP_NAME} {APP_VERSION} - {AUTHOR}"
+WINDOW_TITLE = f"{APP_NAME} {APP_VERSION} - {OWNER}"
+
+print(OWNERSHIP_NOTICE)
 
 if getattr(sys, 'frozen', False):
     # Running as a PyInstaller EXE
@@ -48,15 +51,17 @@ if __name__ == "__main__":
 
         authorization = ensure_device_is_authorized()
         if not authorization.allowed:
-            print("This program could not verify device authorization.")
             print(authorization.message)
             print(f"Machine GUID: {authorization.machine_guid}")
-            print("Press Enter to exit...")
-            input()
+            try:
+                show_license_issue_window(authorization.machine_guid, authorization.message)
+            except Exception:
+                print("Press Enter to exit...")
+                input()
             sys.exit(0)
 
         if authorization.checked_remotely:
-            print(f"Device authorization refreshed. Next required check after {authorization.valid_until_utc}.")
+            print(f"Device licence refreshed. Access remains valid until {authorization.valid_until_utc}.")
 
         config = get_setup_info()
         if not is_config_complete(config):
