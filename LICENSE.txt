@@ -27,6 +27,10 @@ ByteBuilders Hosting.
 1.6 "Temporary Usage Right" means a limited, revocable, non-transferable,
     non-exclusive permission to use an Executable Copy for the period and
     purpose approved by Licensor.
+1.7 "Written Licence Contract" means a written contract created, approved,
+    and filed by ByteBuilders Hosting that expressly authorizes a particular
+    licence, device, company, branch, user, or installation to use the
+    Software.
 
 2. Grant of License
 -------------------
@@ -42,6 +46,12 @@ while the related licence remains valid.
 2.2 Any permission granted by Licensor is temporary only and may be limited by
     time, device, branch, company, user, or other conditions chosen by
     Licensor.
+2.3 No licence is valid unless ByteBuilders Hosting has created, approved, and
+    filed a Written Licence Contract for that licence.
+2.4 Unless a Written Licence Contract issued by ByteBuilders Hosting expressly
+    states otherwise, any licence, Temporary Usage Right, or permission to use
+    the Software automatically terminates immediately if Lian Jordaan is no
+    longer employed by ByteBuilders Hosting.
 
 3. Device Validation and Expiry
 -------------------------------
@@ -51,8 +61,14 @@ while the related licence remains valid.
     Authorized Device entry.
 3.3 If a device is not listed, is disabled, or has passed its expiry date,
     that device is not licensed to use the Software.
-3.4 Licensor may revoke or refuse a licence for any device, company, branch,
-    user, or installation at any time.
+3.4 The presence of a device, Machine GUID, comment, expiry date, or other
+    entry in any list or validation system does not by itself create or grant
+    a licence unless it is supported by a valid Written Licence Contract filed
+    by ByteBuilders Hosting.
+3.5 Licensor may revoke, refuse, suspend, or terminate any licence or
+    permission for any device, company, branch, user, person, account,
+    installation, or other party at any time, for any reason, with or without
+    notice.
 
 4. Restrictions
 ---------------
