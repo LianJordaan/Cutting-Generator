@@ -3,10 +3,16 @@
   "owner": "ByteBuilders Hosting",
   "authorized_devices": [
     {
-      "machine_guid": "replace-with-machine-guid",
-      "expires_on": "2027-12-31",
-      "comment": "Example entry. Replace this with the real device ID before enabling it.",
-      "enabled": false
+      "machine_guid": "4b72be12-6285-41f1-821a-345de00ee78f",
+      "expires_on": "2026-12-31",
+      "comment": "Till 3. Discount Boards Upington.",
+      "enabled": true
+    },
+    {
+      "machine_guid": "7247eaf7-785d-4200-a897-9ede8d78cb6b",
+      "expires_on": "2026-12-31",
+      "comment": "Till 4. Discount Boards Upington.",
+      "enabled": true
     }
   ]
 }
