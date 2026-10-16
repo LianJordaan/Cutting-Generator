@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime, time, timedelta, timezone
 
 DEFAULT_AUTHORIZATION_URL = (
-    "https://raw.githubusercontent.com/LianJordaan/Cutting-Generator/refs/heads/master/authorized_machines.json"
+    "https://cloudflare-api.bytebuilders.co.za/cache/authorized-machines.json"
 )
 AUTHORIZATION_URL = os.environ.get("CUTTING_GENERATOR_AUTH_URL", DEFAULT_AUTHORIZATION_URL)
 AUTH_CACHE_DIR = os.path.join(os.path.expanduser("~"), ".cutting_generator")
