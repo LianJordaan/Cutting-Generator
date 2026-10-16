@@ -346,7 +346,7 @@ class RoutingTests(unittest.TestCase):
         paths = [str(self.source), str(self.source.with_name("second.xlsx"))]
         code, _ = self.run_app(paths=paths)
         self.assertEqual(code, 0)
-        self.merge.assert_called_once_with(paths)
+        self.merge.assert_called_once_with(paths, config=self.config)
         self.regular.assert_not_called()
         self.convert.assert_not_called()
         self.erik.assert_not_called()
@@ -359,6 +359,19 @@ class RoutingTests(unittest.TestCase):
                 self.assertEqual(code, 1)
                 self.assertIn("requires the Developer Password", output)
         self.merge.assert_not_called()
+
+    def test_transfer_record_resumes_only_after_developer_check(self):
+        path = Path(self.temp.name) / "Merged.transfer.json"
+        with patch("transfer_gui.resume_transfer") as resume:
+            code, _ = self.run_app(path=path)
+            self.assertEqual(code, 0)
+            resume.assert_called_once_with(str(path), self.config)
+            resume.reset_mock()
+            self.config["developer_password"] = "wrong"
+            code, _ = self.run_app(path=path)
+            self.assertEqual(code, 1)
+            resume.assert_not_called()
+        self.regular.assert_not_called()
         self.regular.assert_not_called()
 
     def test_unlicensed_machine_cannot_open_merge_window(self):

@@ -6,9 +6,10 @@ from queue import Empty, Queue
 import re
 from threading import Thread
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox, simpledialog, ttk
 
 from merge_processor import group_cutlists, merge_cutlists, move_items, read_merge_file, text
+from operation_transfer import inspect_sources, operation_counts, prepare_manifest, save_manifest
 
 
 BG = "#f3f6fa"
@@ -121,8 +122,15 @@ class OrderTable(ttk.Frame):
 
 
 class MergeWindow:
-    def __init__(self, root, paths=()):
+    def __init__(self, root, paths=(), config=None):
         self.root = root
+        self.config = config
+        self.inspection = None
+        self.inspection_error = None
+        self.quote_overrides = {}
+        self.transfer_decided = False
+        self.include_operations = tk.BooleanVar(root, False)
+        self.operation_status = tk.StringVar(root, "Database extra operations have not been checked yet.")
         self.result = None
         self.busy = False
         self.page = 1
@@ -199,12 +207,17 @@ class MergeWindow:
         self.add_button.pack(side="left")
         self.remove_button = ttk.Button(toolbar, text="Remove selected", command=self.remove_files)
         self.remove_button.pack(side="left", padx=8)
+        self.quote_button = ttk.Button(toolbar, text="Set source quote...", command=self.set_source_quote)
+        self.quote_button.pack(side="left")
+        self.inspect_button = ttk.Button(toolbar, text="Check extra operations", command=self.inspect)
+        self.inspect_button.pack(side="left", padx=8)
         ttk.Label(toolbar, text="Cut Manager exports (.xlsx)", style="Muted.TLabel").pack(side="right")
         self.file_table = OrderTable(page, [("index", "Order", 55), ("file", "File", 400),
                                             ("job", "Source job", 240), ("counts", "Cutlists / pieces", 140)], self.files_changed)
         self.file_table.grid(row=3, column=0, sticky="nsew")
         self.file_table.set_items([], self.describe_file)
         ttk.Label(page, textvariable=self.summary, style="Muted.TLabel").grid(row=4, column=0, sticky="w", pady=(14, 0))
+        ttk.Label(page, textvariable=self.operation_status, style="Muted.TLabel", wraplength=1000).grid(row=5, column=0, sticky="w", pady=(8, 0))
 
     def _preview_page(self):
         page = self.preview_page
@@ -240,8 +253,12 @@ class MergeWindow:
         self.source_text.configure(yscrollcommand=source_scroll.set)
         self.source_details.trace_add("write", self.render_sources)
         self.render_sources()
-        ttk.Label(page, text="Different thicknesses or cutting settings stay separate. Edging, holes, remarks and unit IDs are preserved.",
+        ttk.Label(page, text="Different thicknesses or cutting settings stay separate. Edging, holes and remarks are preserved.",
                   style="Muted.TLabel", wraplength=970).grid(row=5, column=0, sticky="w", pady=(8, 0))
+        self.operations_check = ttk.Checkbutton(page, text="Transfer detected extra operations after importing (assign unique piece IDs; retain original IDs in transfer record)",
+                                                variable=self.include_operations)
+        self.operations_check.grid(row=6, column=0, sticky="w", pady=(8, 0))
+        ttk.Label(page, textvariable=self.operation_status, style="Muted.TLabel", wraplength=1000).grid(row=7, column=0, sticky="w", pady=(6, 0))
 
     def _footer(self):
         footer = ttk.Frame(self.root, padding=(26, 14))
@@ -311,8 +328,10 @@ class MergeWindow:
             return
         ready = len(self.file_table.items) >= 2 if self.page == 1 else bool(self.group_table.items and text(self.customer.get()) and text(self.job.get()))
         self.next_button.configure(state="normal" if ready and not self.busy else "disabled")
-        for button in [self.add_button, self.remove_button, self.back_button]:
+        for button in [self.add_button, self.remove_button, self.back_button, self.quote_button, self.inspect_button]:
             button.configure(state="disabled" if self.busy else "normal")
+        transferable = self.inspection and not self.inspection["errors"] and any(operation_counts(self.inspection).values())
+        self.operations_check.configure(state="normal" if transferable and not self.busy else "disabled")
         self.file_table.set_enabled(not self.busy)
         self.group_table.set_enabled(not self.busy)
         for entry in self.detail_entries:
@@ -330,6 +349,57 @@ class MergeWindow:
         selected = self.file_table.selected()
         self.file_table.set_items([f for i, f in enumerate(self.file_table.items) if i not in selected], self.describe_file)
         self.files_changed()
+        self.inspect()
+
+    def set_source_quote(self):
+        selected = self.file_table.selected()
+        if self.busy or len(selected) != 1:
+            messagebox.showinfo("Select one file", "Select one source file, then enter its original quote number.", parent=self.root)
+            return
+        file = self.file_table.items[selected[0]]
+        number = simpledialog.askinteger("Original source quote", f"Original Cutting Manager quote for:\n{file.path.name}",
+                                        parent=self.root, minvalue=1)
+        if number is not None:
+            self.quote_overrides[str(file.path)] = number
+            self.inspect()
+
+    def inspect(self):
+        if self.busy or self.config is None:
+            return
+        self.inspection = None
+        self.inspection_error = None
+        self.transfer_decided = False
+        self.include_operations.set(False)
+        files = list(self.file_table.items)
+        if not files:
+            self.operation_status.set("Add files to check their database extra operations.")
+            self.update_actions()
+            return
+        self.set_busy(True, "Checking source quotes for extra operations (read only)...")
+        overrides = dict(self.quote_overrides)
+
+        def worker():
+            try:
+                self.queue.put(("inspected", inspect_sources(files, self.config, overrides), None))
+            except Exception as exc:
+                self.queue.put(("inspected", None, exc))
+        Thread(target=worker, daemon=True).start()
+
+    def inspection_finished(self, result, error):
+        self.inspection, self.inspection_error = result, error
+        if error:
+            self.operation_status.set("Extra operations could not be verified: " + str(error))
+        elif result["errors"]:
+            errors = list(result["errors"].items())
+            details = " | ".join(f"{Path(path).name}: {message}" for path, message in errors[:2])
+            more = f" (+{len(errors) - 2} other files)" if len(errors) > 2 else ""
+            self.operation_status.set("Some sources could not be verified. " + details + more)
+        else:
+            counts = operation_counts(result)
+            labels = {"CROSSCUTS": "crosscuts", "CUTOUTS": "cutouts", "MITRES": "mitres", "GROOVES": "grooves"}
+            summary = ", ".join(f"{count} {labels[table]}" for table, count in counts.items() if count)
+            self.operation_status.set("Detected: " + summary if summary else "All source quotes verified. No database extra operations found.")
+        self.update_actions()
 
     def set_busy(self, busy, message=""):
         self.busy = busy
@@ -378,8 +448,11 @@ class MergeWindow:
                     self.files_changed()
                     if errors:
                         messagebox.showerror("Some files could not be added", "\n\n".join(errors), parent=self.root)
+                    self.inspect()
+                elif action == "inspected":
+                    self.inspection_finished(value, errors)
                 elif action == "saved":
-                    self.saved(value)
+                    self.saved(value, errors)
                 elif action == "failed":
                     self.status.set("The merge could not be saved. Your input files have not changed.")
                     messagebox.showerror("Could not save merged workbook", str(value), parent=self.root)
@@ -397,6 +470,19 @@ class MergeWindow:
         files = self.file_table.items
         if len(files) < 2:
             return
+        if self.config is not None and not self.transfer_decided:
+            if self.inspection is None or self.inspection["errors"]:
+                if not messagebox.askyesno("Extra operations are unverified",
+                                          self.operation_status.get() + "\n\nUse Set source quote or Check extra operations to resolve this.\n\n"
+                                          "Continue with a workbook only, without transferring database extra operations?",
+                                          parent=self.root, default="no"):
+                    return
+            elif any(operation_counts(self.inspection).values()):
+                self.include_operations.set(messagebox.askyesno("Include extra operations?",
+                    self.operation_status.get() + "\n\nAlso transfer these after you manually import the merged workbook?\n\n"
+                    "Merged rows will receive unique IDs; original IDs remain in the transfer record. "
+                    "You will check the new quote and approve additions after a verified backup.", parent=self.root))
+            self.transfer_decided = True
         signature = tuple((f.path, id(f)) for f in files)
         if self.preview_signature != signature:
             self.group_table.set_items(group_cutlists(files), self.describe_group)
@@ -433,18 +519,33 @@ class MergeWindow:
             return
         groups = list(self.group_table.items)
         overwrite = Path(path).exists()
+        transfer_enabled = self.include_operations.get()
+        if transfer_enabled and (overwrite or Path(path).with_suffix(".transfer.json").exists()):
+            messagebox.showerror("Choose a new filename", "A transfer needs a new workbook and transfer record. Choose an unused filename.", parent=self.root)
+            return
+        if (self.config is not None and not transfer_enabled and self.inspection
+                and any(operation_counts(self.inspection).values()) and not messagebox.askyesno("Save workbook only?",
+                "This workbook will not transfer database extra operations. Continue?", parent=self.root, default="no")):
+            return
+        inspection = self.inspection
         self.set_busy(True, "Saving merged workbook...")
 
         def worker():
             try:
-                output = merge_cutlists(groups, path, customer=customer, job=job, contact=contact, overwrite=overwrite)
-                self.queue.put(("saved", output, None))
+                payload, unit_ids = prepare_manifest(groups, inspection, customer, job) if transfer_enabled else (None, None)
+                output = merge_cutlists(groups, path, customer=customer, job=job, contact=contact, overwrite=overwrite, unit_ids=unit_ids)
+                try:
+                    record = save_manifest(payload, output) if transfer_enabled else None
+                except Exception as exc:
+                    raise ValueError(f"Workbook saved at {output}, but its transfer record could not be saved. "
+                                     "Do not import it for a transfer; create a fresh merge with a new filename. " + str(exc)) from exc
+                self.queue.put(("saved", output, record))
             except Exception as exc:
                 self.queue.put(("failed", exc, None))
 
         Thread(target=worker, daemon=True).start()
 
-    def saved(self, path):
+    def saved(self, path, record=None):
         self.result = path
         self.page = 3
         self.files_page.grid_remove()
@@ -464,9 +565,16 @@ class MergeWindow:
         buttons.pack(anchor="w")
         ttk.Button(buttons, text="Open containing folder", command=lambda: os.startfile(str(path.parent))).pack(side="left")
         ttk.Button(buttons, text="Copy file path", command=lambda: self.copy_path(path)).pack(side="left", padx=8)
+        if record is not None:
+            from transfer_gui import show_transfer_window
+            ttk.Label(success, text="Keep the .transfer.json file beside this workbook. After importing, continue below. "
+                      "You can also drag the transfer record into the app later to resume.",
+                      style="Muted.TLabel", wraplength=900).pack(anchor="w", pady=(20, 12))
+            ttk.Button(success, text="I've imported it - transfer extra operations", style="Accent.TButton",
+                       command=lambda: show_transfer_window(self.root, record, self.config)).pack(anchor="w")
         self.back_button.grid_remove()
         self.cancel_button.grid_remove()
-        self.next_button.configure(text="Done", command=self.root.destroy, state="normal")
+        self.next_button.configure(text="Done", command=self.close, state="normal")
         self.status.set("Saved successfully. Ready to import into Cutting Manager.")
 
     def copy_path(self, path):
@@ -476,14 +584,15 @@ class MergeWindow:
         self.status.set("File path copied to the clipboard.")
 
     def close(self):
-        if self.busy:
+        transfer = getattr(self.root, "_operation_transfer_window", None)
+        if self.busy or (transfer is not None and transfer.busy):
             messagebox.showinfo("Please wait", "A workbook operation is in progress. Please wait for it to finish.", parent=self.root)
             return
         self.root.destroy()
 
 
-def show_merge_window(paths):
+def show_merge_window(paths, config=None):
     root = tk.Tk()
-    window = MergeWindow(root, paths)
+    window = MergeWindow(root, paths, config=config)
     root.mainloop()
     return window.result

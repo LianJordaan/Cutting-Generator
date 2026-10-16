@@ -132,6 +132,59 @@ class MergeGuiTests(unittest.TestCase):
         error.assert_called_once()
         self.assertEqual(len(self.window.file_table.items), 2)
 
+    def enable_discovery(self, operations=True, errors=None):
+        self.window.config = {"test_only": True}
+        result = {"sources": [{"mapping": [{"operations": {"CROSSCUTS": [[0,185,0,0,0,"0"]] if operations else []}}]}],
+                  "errors": errors or {}}
+        self.window.inspection_finished(result, None)
+        return result
+
+    def test_detected_operations_offer_transfer_and_unique_ids(self):
+        self.enable_discovery()
+        with patch("merge_gui.messagebox.askyesno", return_value=True) as ask:
+            self.window.next_step()
+        ask.assert_called_once()
+        self.assertTrue(self.window.include_operations.get())
+        self.assertEqual(self.window.page, 2)
+
+    def test_unknown_sources_require_explicit_workbook_only_choice(self):
+        self.enable_discovery(errors={str(self.first): "quote missing"})
+        with patch("merge_gui.messagebox.askyesno", return_value=False):
+            self.window.next_step()
+        self.assertEqual(self.window.page, 1)
+        self.assertIn("disabled", self.window.operations_check.state())
+        with patch("merge_gui.messagebox.askyesno", return_value=True):
+            self.window.next_step()
+        self.assertEqual(self.window.page, 2)
+        self.assertFalse(self.window.include_operations.get())
+
+    def test_readonly_discovery_runs_in_worker_and_reports_offline(self):
+        self.window.config = {"test_only": True}
+        with patch("merge_gui.inspect_sources", side_effect=OSError("offline")) as inspect:
+            self.window.inspect()
+            self.wait_for_worker()
+        inspect.assert_called_once()
+        self.assertIn("could not be verified", self.window.operation_status.get())
+        self.assertIn("disabled", self.window.operations_check.state())
+
+    def test_transfer_save_cannot_replace_existing_workbook(self):
+        self.enable_discovery()
+        with patch("merge_gui.messagebox.askyesno", return_value=True):
+            self.window.next_step()
+        path = self.folder / "existing.xlsx"
+        path.write_bytes(b"keep")
+        with patch("merge_gui.filedialog.asksaveasfilename", return_value=str(path)), patch("merge_gui.messagebox.showerror") as error:
+            self.window.save()
+        error.assert_called_once()
+        self.assertEqual(path.read_bytes(), b"keep")
+
+    def test_main_window_cannot_close_during_transfer(self):
+        self.root._operation_transfer_window = SimpleNamespace(busy=True)
+        with patch("merge_gui.messagebox.showinfo") as info:
+            self.window.close()
+        info.assert_called_once()
+        self.assertTrue(self.root.winfo_exists())
+
 
 if __name__ == "__main__":
     unittest.main()

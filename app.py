@@ -24,7 +24,7 @@ from merge_gui import show_merge_window
 print("Libraries loaded.")
 
 APP_NAME = "Cutting Generator"
-APP_VERSION = "v5.2.0"
+APP_VERSION = "v5.3.2"
 OWNER = "ByteBuilders Hosting"
 OWNERSHIP_NOTICE = f"{APP_NAME} was sold to {OWNER} and is now owned by {OWNER}."
 
@@ -106,7 +106,7 @@ if __name__ == "__main__":
                 print("Merging Cutting Manager files requires the Developer Password in Setup.")
                 input("Press Enter to exit...")
                 sys.exit(1)
-            output_path = show_merge_window(sys.argv[1:])
+            output_path = show_merge_window(sys.argv[1:], config=config)
             if output_path is not None:
                 print(f"Saved merged Cut Manager workbook: {output_path}")
                 refresh_desktop()
@@ -114,6 +114,14 @@ if __name__ == "__main__":
 
         if len(sys.argv) > 1:
             file_path = sys.argv[1]
+            if file_path.lower().endswith(".transfer.json"):
+                if not is_developer_mode_enabled(config):
+                    print("Extra-operation transfers require the Developer Password in Setup.")
+                    input("Press Enter to exit...")
+                    sys.exit(1)
+                from transfer_gui import resume_transfer
+                resume_transfer(file_path, config)
+                sys.exit(0)
             template_path = os.path.join(base_path, "template.xls")
             erik_template_path = os.path.join(base_path, "template.xlsx")
             if is_cupboard_cutlist(file_path):

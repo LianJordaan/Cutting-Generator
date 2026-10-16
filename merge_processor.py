@@ -203,7 +203,7 @@ def _literal(cell, value):
     cell.data_type = "s"
 
 
-def merge_cutlists(groups, output_path, *, customer, job, contact="", overwrite=False):
+def merge_cutlists(groups, output_path, *, customer, job, contact="", overwrite=False, unit_ids=None):
     """Write the chosen group order atomically. Caller enforces licence/dev access."""
     if not groups or not text(customer) or not text(job):
         raise ValueError("Choose cutlists and enter a customer and job name before saving.")
@@ -246,6 +246,8 @@ def merge_cutlists(groups, output_path, *, customer, job, contact="", overwrite=
                         cell = source.sheet.cell(source_row, column)
                         style = cell if cell.has_style else source.sheet.cell(8, column)
                         _copy_cell(cell, sheet.cell(destination_row, column), style)
+                    if unit_ids is not None:
+                        sheet.cell(destination_row, 1).value = unit_ids[(str(source.path), source.sheet.title, source_row)]
                     # Resolve header defaults before combining different edging types.
                     if _number(sheet.cell(destination_row, 5).value) or _number(sheet.cell(destination_row, 6).value):
                         for column, header in [(9, "C5"), (10, "E5")]:
