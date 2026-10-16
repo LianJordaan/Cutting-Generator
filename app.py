@@ -1,9 +1,12 @@
-print("🚀 Starting Cutting Generator...")
-
 import sys
 import os
 import traceback
 
+# Redirected output can use a Windows encoding that cannot display emoji.
+if sys.stdout is not None and hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(errors="replace")
+
+print("🚀 Starting Cutting Generator...")
 print("Loading libraries...")
 
 from openpyxl import load_workbook
@@ -15,11 +18,12 @@ from setup_gui import *
 from helpers import *
 from shape_gen import *
 from device_auth import ensure_device_is_authorized, get_machine_guid
+from cupboard_processor import is_cupboard_cutlist, process_cupboard_cutlist
 
 print("Libraries loaded.")
 
 APP_NAME = "Cutting Generator"
-APP_VERSION = "v5.0.0"
+APP_VERSION = "v5.1.0"
 OWNER = "ByteBuilders Hosting"
 OWNERSHIP_NOTICE = f"{APP_NAME} was sold to {OWNER} and is now owned by {OWNER}."
 
@@ -101,6 +105,17 @@ if __name__ == "__main__":
             file_path = sys.argv[1]
             template_path = os.path.join(base_path, "template.xls")
             erik_template_path = os.path.join(base_path, "template.xlsx")
+            if is_cupboard_cutlist(file_path):
+                if not is_developer_mode_enabled(config):
+                    print("Cupboard Manager processing requires the Developer Password in Setup.")
+                    input("Press Enter to exit...")
+                    sys.exit(1)
+                print("Cupboard Manager cutlist detected - converting to Cut Manager...")
+                output_path = process_cupboard_cutlist(file_path, erik_template_path)
+                print(f"Saved Cut Manager workbook: {output_path}")
+                refresh_desktop()
+                sys.exit(0)
+
             # Check for Erik's cutlist and use alternate processing if detected
             try:
                 if is_erik_cutlist(file_path) and is_developer_mode_enabled(config):
