@@ -19,11 +19,12 @@ from helpers import *
 from shape_gen import *
 from device_auth import ensure_device_is_authorized, get_machine_guid
 from cupboard_processor import is_cupboard_cutlist, process_cupboard_cutlist
+from merge_gui import show_merge_window
 
 print("Libraries loaded.")
 
 APP_NAME = "Cutting Generator"
-APP_VERSION = "v5.1.0"
+APP_VERSION = "v5.2.0"
 OWNER = "ByteBuilders Hosting"
 OWNERSHIP_NOTICE = f"{APP_NAME} was sold to {OWNER} and is now owned by {OWNER}."
 
@@ -100,6 +101,16 @@ if __name__ == "__main__":
             sys.exit(0)
 
 
+        if len(sys.argv) > 2:
+            if not is_developer_mode_enabled(config):
+                print("Merging Cutting Manager files requires the Developer Password in Setup.")
+                input("Press Enter to exit...")
+                sys.exit(1)
+            output_path = show_merge_window(sys.argv[1:])
+            if output_path is not None:
+                print(f"Saved merged Cut Manager workbook: {output_path}")
+                refresh_desktop()
+            sys.exit(0)
 
         if len(sys.argv) > 1:
             file_path = sys.argv[1]

@@ -256,6 +256,7 @@ class RoutingTests(unittest.TestCase):
         self.erik = Mock()
         self.erik_detector = Mock(return_value=False)
         self.cutouts = Mock(return_value=[])
+        self.merge = Mock(return_value=None)
         self.modules = {
             "setup_gui": fake_module("setup_gui", setup=Mock(), get_setup_info=self.setup_info,
                                      show_license_issue_window=Mock()),
@@ -270,14 +271,15 @@ class RoutingTests(unittest.TestCase):
                                        get_machine_guid=Mock()),
         }
 
-    def run_app(self, path=None):
+    def run_app(self, path=None, paths=None):
         output = StringIO()
         with ExitStack() as stack:
             stack.enter_context(patch.dict(sys.modules, self.modules))
-            stack.enter_context(patch.object(sys, "argv", [str(ROOT / "app.py"), str(path or self.source)]))
+            stack.enter_context(patch.object(sys, "argv", [str(ROOT / "app.py"), *(paths or [str(path or self.source)])]))
             stack.enter_context(patch("os.system"))
             stack.enter_context(patch("builtins.input", return_value=""))
             stack.enter_context(patch("cupboard_processor.process_cupboard_cutlist", self.convert))
+            stack.enter_context(patch("merge_gui.show_merge_window", self.merge))
             stack.enter_context(redirect_stdout(output))
             try:
                 runpy.run_path(str(ROOT / "app.py"), run_name="__main__")
@@ -339,6 +341,36 @@ class RoutingTests(unittest.TestCase):
         self.assertIn("unsupported file version", output)
         self.assertIn("Processing aborted", output)
         self.regular.assert_not_called()
+
+    def test_multiple_files_open_merge_window_and_do_not_process_single_file(self):
+        paths = [str(self.source), str(self.source.with_name("second.xlsx"))]
+        code, _ = self.run_app(paths=paths)
+        self.assertEqual(code, 0)
+        self.merge.assert_called_once_with(paths)
+        self.regular.assert_not_called()
+        self.convert.assert_not_called()
+        self.erik.assert_not_called()
+
+    def test_merge_requires_developer_password(self):
+        for password in [None, "", "wrong"]:
+            with self.subTest(password=password):
+                self.config["developer_password"] = password
+                code, output = self.run_app(paths=["first.xlsx", "second.xlsx"])
+                self.assertEqual(code, 1)
+                self.assertIn("requires the Developer Password", output)
+        self.merge.assert_not_called()
+        self.regular.assert_not_called()
+
+    def test_unlicensed_machine_cannot_open_merge_window(self):
+        self.license.return_value = SimpleNamespace(allowed=False, message="Licence required", machine_guid="test")
+        self.run_app(paths=["first.xlsx", "second.xlsx"])
+        self.merge.assert_not_called()
+
+    def test_completed_merge_reports_saved_path(self):
+        self.merge.return_value = Path(self.temp.name) / "merged.xlsx"
+        code, output = self.run_app(paths=["first.xlsx", "second.xlsx"])
+        self.assertEqual(code, 0)
+        self.assertIn("Saved merged Cut Manager workbook:", output)
 
     @unittest.skipUnless(sys.platform == "win32", "Machine GUID is Windows-only")
     def test_startup_handles_redirected_windows_text_encoding(self):
